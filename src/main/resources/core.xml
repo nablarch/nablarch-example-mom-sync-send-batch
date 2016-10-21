@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Nablarchのコア機能一式を提供する。 -->
+<component-configuration
+        xmlns="http://tis.co.jp/nablarch/component-configuration"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration /component-configuration.xsd">
+
+  <!-- 日付 -->
+  <import file="nablarch/core/date.xml"/>
+
+  <!-- メッセージ -->
+  <import file="nablarch/core/message.xml"/>
+
+  <!-- バリデーション -->
+  <!-- 下記をインポートしている場合、使用しないに関わらず${nablarch.domainValidationHelper.domainAnnotation}の設定が必要になる。 -->
+  <!--
+  <import file="nablarch/core/validation.xml"/>
+   -->
+
+  <!-- DB -->
+  <import file="nablarch/core/db-base.xml"/>
+</component-configuration>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration /component-configuration.xsd">
+
+  <!-- プロダクション用の設定読み込み -->
+  <import file="messaging-sync-send-component-configuration.xml"/>
+
+  <import file="nablarch/core/date_test.xml"/>
+
+  <!-- メッセージングプロバイダ定義 -->
+  <component name="defaultMessagingProvider"
+             class="nablarch.test.core.messaging.RequestTestingMessagingProvider" />
+
+  <!-- テスティングフレームワークの設定 -->
+  <import file="nablarch/test/test-data.xml"/>
+
+  <!-- 汎用のDB設定 -->
+  <component name="dbInfo" class="nablarch.test.core.db.GenericJdbcDbInfo">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="schema" value="${nablarch.db.schema}"/>
+  </component>
+
+  <!-- 初期化が必要なコンポーネント -->
+  <component name="initializer"
+             class="nablarch.core.repository.initialization.BasicApplicationInitializer">
+    <property name="initializeList">
+      <list>
+        <!-- 処理停止ハンドラ -->
+        <component-ref name="processStopHandler"/>
+        <!-- メッセージングプロバイダ -->
+        <component-ref name="defaultMessagingProvider" />
+      </list>
+    </property>
+  </component>
+
+</component-configuration>

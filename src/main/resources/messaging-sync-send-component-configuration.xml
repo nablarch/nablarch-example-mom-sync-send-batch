@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration  /component-configuration.xsd">
+
+  <!-- テーブル定義 -->
+  <import file="nablarch/schema-config.xml" />
+
+  <!-- 環境設定ファイル -->
+  <config-file file="common.config" />
+  <config-file file="env.config" />
+
+  <!--
+  バッチ固有の設定読み込み
+  -->
+  <!-- データベース設定-->
+  <import file="nablarch/batch/db-for-batch.xml" />
+  <import file="data-source.xml"/>
+
+  <!-- ファイルパス設置 -->
+  <import file="nablarch/batch/filepath-for-batch.xml" />
+  <!-- スレッドコンテキスト機能 -->
+  <import file="nablarch/batch/threadcontext-for-batch.xml" />
+  <!-- 処理停止機能 -->
+  <import file="nablarch/common/standalone/process-stop.xml" />
+  <!-- コミットログ機能 -->
+  <import file="nablarch/common/standalone/commit-log.xml" />
+  <!-- マルチスレッド実行制御機能 -->
+  <import file="nablarch/common/standalone/multi-thread.xml" />
+  <!-- ループ・トランザクション制御機能 -->
+  <import file="nablarch/batch/loop-transaction.xml" />
+  <!-- データリード機能 -->
+  <import file="nablarch/batch/batch-data-read.xml" />
+
+  <!-- メッセージング用コンポーネント定義ここから============================================================================================= -->
+  <!-- 同期応答メッセージ送信固有の設定読み込み -->
+  <config-file file="messaging/messaging.config" />
+
+  <!-- フォーマット定義ファイルの配置先パス、拡張子の設定 -->
+  <component name="filePathSetting" class="nablarch.core.util.FilePathSetting" autowireType="None">
+      <property name="basePathSettings">
+          <map>
+            <entry key="format" value="${nablarch.filePathSetting.basePathSettings.format}" />
+         </map>
+       </property>
+       <property name="fileExtensions">
+         <map>
+           <entry key="format" value="fmt" />
+         </map>
+       </property>
+  </component>
+
+  <!-- フレームワーク制御ヘッダ -->
+  <component name = "fwHeaderDefinition"
+             class = "nablarch.fw.messaging.reader.StructuredFwHeaderDefinition">
+     <property name = "FwHeaderKeys">
+        <map>
+          <entry key="userId"     value="_nbctlhdr.userId"/>
+          <entry key="resendFlag" value="_nbctlhdr.resendFlag"/>
+          <entry key="statusCode" value="_nbctlhdr.statusCode"/>
+        </map>
+      </property>
+  </component>
+
+  <!-- メッセージングプロバイダ -->
+  <component name="defaultMessagingProvider"
+             class="nablarch.fw.messaging.provider.JndiLookingUpJmsMessagingProvider">
+    <property name="jndiHelper">
+        <component class="nablarch.core.repository.jndi.JndiHelper">
+          <property name="jndiProperties">
+             <map>
+                 <entry key="java.naming.factory.initial" value="org.apache.activemq.jndi.ActiveMQInitialContextFactory"/>
+                 <entry key="java.naming.provider.url"    value="tcp://localhost:61616"/>
+             </map>
+           </property>
+        </component>
+    </property>
+    <property name="connectionFactoryJndiName" value="ConnectionFactory"/>
+    <property name="destinationNamePairs">
+        <map>
+          <entry key="TEST.REQUEST"  value="dynamicQueues/TEST.REQUEST"/> <!-- 送信先キュー名-->
+          <entry key="TEST.RESPONSE" value="dynamicQueues/TEST.RESPONSE"/><!-- 受信元キュー名-->
+        </map>
+    </property>
+  </component>
+
+  <!-- 電文変換コンポーネント -->
+  <component name="defaultSyncMessageConvertor"
+             class="nablarch.fw.messaging.SyncMessageConvertor" />
+  <!-- メッセージング用コンポーネント定義ここまで============================================================================================= -->
+
+
+  <!-- ハンドラキュー構成 -->
+  <list name="handlerQueue">
+    <!-- ステータスコードを終了コードに変換するハンドラ -->
+    <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
+
+    <!-- グローバルエラーハンドラ -->
+    <component class="nablarch.fw.handler.GlobalErrorHandler" />
+
+    <!-- スレッドコンテキスト設定ハンドラ -->
+    <component-ref name="threadContextHandler" />
+
+    <!-- データベース接続ハンドラ -->
+    <component-ref name="dbConnectionManagementHandler" />
+
+    <!-- トランザクションマネージャ -->
+    <component-ref name="transactionManagementHandler" />
+
+    <!-- ディスパッチ -->
+    <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
+      <property name="basePackage" value="${nablarch.commonProperty.basePackage}" />
+      <property name="immediate" value="false" />
+    </component>
+
+    <!-- マルチスレッド実行制御ハンドラ -->
+    <component-ref name="multiThreadExecutionHandler" />
+
+    <!-- データベース接続ハンドラ -->
+    <component-ref name="dbConnectionManagementHandler" />
+
+    <!-- ループ・トランザクション制御ハンドラ -->
+    <component-ref name="loopHandler" />
+
+    <!--処理停止ハンドラ-->
+    <component-ref name="processStopHandler" />
+
+    <!-- データリードハンドラ -->
+    <component-ref name="dataReadHandler" />
+
+  </list>
+
+  <!-- 初期化が必要なコンポーネント -->
+  <component name="initializer"
+             class="nablarch.core.repository.initialization.BasicApplicationInitializer">
+    <property name="initializeList">
+      <list>
+        <!-- common/date.xml:業務日付コンポーネント -->
+        <component-ref name="businessDateProvider" />
+        <!-- batch/handler/processStop.xml:処理停止ハンドラ -->
+        <component-ref name="processStopHandler" />
+      </list>
+    </property>
+  </component>
+</component-configuration>
