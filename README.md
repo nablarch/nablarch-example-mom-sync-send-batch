@@ -55,6 +55,7 @@ Gitを使用しない場合、最新のタグからzipをダウンロードし�
     $java -cp target/nablarch-example-mom-sync-send-batch-<バージョン>-dev.jar;target/dependency/* nablarch.fw.launcher.Main -diConfig classpath:messaging-sync-send-boot.xml -requestPath SendProjectInsertMessageAction -userId batch_user
 
 起動に成功すると、MOM同期応答メッセージングの受信側との通信を行い、以下のようなログがコンソールに出力されます。
+ログ出力後、本Exampleは自動的に終了します。
 
     2016-06-07 17:18:33.232 -INFO- ROO [null] @@@@ APPLICATION SETTINGS @@@@
             system settings = {
@@ -100,7 +101,6 @@ Gitを使用しない場合、最新のタグからzipをダウンロードし�
     2016-06-07 17:18:35.685 -INFO- ROO [201606071718332320001] TOTAL COMMIT COUNT = [1]
     2016-06-07 17:18:35.685 -INFO- ROO [201606071718332320001] @@@@ END @@@@ exit code = [0] execute time(ms) = [3395]
 
-    ログ出力後、本Exampleは自動的に終了します。
 
 ### 5. DBの確認方法
 
