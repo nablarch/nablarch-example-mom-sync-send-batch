@@ -3,6 +3,7 @@ package com.nablarch.example;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import nablarch.core.date.SystemTimeUtil;
 import nablarch.core.db.statement.ParameterizedSqlPStatement;
@@ -24,6 +25,8 @@ import nablarch.fw.results.TransactionAbnormalEnd;
 
 /**
  * プロジェクト登録メッセージ送信を行う業務アクションクラス。
+ *
+ * @author Nabu Rakutaro
  */
 public class SendProjectInsertMessageAction extends BatchAction<SqlRow> {
 
@@ -60,38 +63,43 @@ public class SendProjectInsertMessageAction extends BatchAction<SqlRow> {
         //
         // また、送信後は自動的に応答電文を待つ。
         // 応答電文の受信時には、「応答電文のフォーマット定義」に従って、フレームワークが電文の内容を取り出す。
-        SyncMessage responseMessage = null;
+        final SyncMessage responseMessage;
         try {
-            responseMessage = MessageSender.sendSync(new SyncMessage("ProjectInsertMessage").addDataRecord(inputData));
+            responseMessage = MessageSender.sendSync(new SyncMessage("ProjectInsertMessage")
+                    .addDataRecord(inputData));
+            
         } catch (MessagingException e) {
             // 送信エラー
             throw new TransactionAbnormalEnd(100, e, "error.sendServer.fail");
         }
 
-        Map<String, Object> responseDataRecord = responseMessage.getDataRecord();
-        if (responseDataRecord != null && StringUtil.hasValue((String) responseDataRecord.get("returnCode"))) {
-            String returnCode = (String) responseDataRecord.get("returnCode");
-            String detail = (String) responseDataRecord.get("detail");
-
-            if (returnCode.equals("error.validation")) {
-                throw new TransactionAbnormalEnd(110, "error.receiveServer.validation");
-
-            } else if (returnCode.equals("fatal")) {
-                throw new TransactionAbnormalEnd(110, "error.receiveServer.fail", detail);
-
-            } else if (!returnCode.equals("success")) {
-                //通常到達しない。
-                //(到達した場合は、受信側で未知のリターンコードが実装されている)
-                throw new TransactionAbnormalEnd(120, "error.receiveServer.unknown", returnCode, detail);
-            }
-        } else {
-            //通常到達しない。
-            //(到達した場合は、受信側でエラーハンドリングに失敗している)
-            throw new TransactionAbnormalEnd(120, "error.receiveServer.fail");
-        }
+        handleResponse(new ResponseData(responseMessage.getDataRecord()));
 
         //処理成功(ここに到達した場合は、returnCodeが"success"である)
         return new Success();
+    }
+
+    /**
+     * レスポンスに対する処理を行う。
+     *
+     * @param responseData レスポンスデータ
+     */
+    private static void handleResponse(final ResponseData responseData) {
+
+        if (!responseData.hasReturnCode()) {
+            // 通常この分岐に入ることはない
+            // (到達した場合は、受信側でエラーハンドリングに失敗している)
+            throw new TransactionAbnormalEnd(120, "error.receiveServer.fail");
+        }
+        
+        if (responseData.isValidationError()) {
+            throw new TransactionAbnormalEnd(110, "error.receiveServer.validation");
+        } else if (responseData.isFatalError()) {
+            throw new TransactionAbnormalEnd(110, "error.receiveServer.fail", responseData.getDetail());
+        } else if (!responseData.isSuccess()) {
+            throw new TransactionAbnormalEnd(120, "error.receiveServer.unknown",
+                    responseData.getDetail(), responseData.getDetail());
+        }
     }
 
     /**
@@ -132,5 +140,80 @@ public class SendProjectInsertMessageAction extends BatchAction<SqlRow> {
         DatabaseRecordReader reader = new DatabaseRecordReader();
         reader.setStatement(getSqlPStatement("GET_PROJECT_INS_REQ_LIST"));
         return reader;
+    }
+
+    /**
+     * レスポンスデータ
+     */
+    private static final class ResponseData {
+
+        /** レスポンスデータ */
+        private final Map<String, Object> response;
+
+        /** リターンコード */
+        private final String returnCode;
+
+        /**
+         * レスポンスデータを生成する。
+         * @param response レスポンス
+         */
+        private ResponseData(final Map<String, Object> response) {
+            this.response = response;
+            if (response != null) {
+                returnCode = (String) response.get("returnCode");
+            } else {
+                returnCode = null;
+            }
+        }
+
+        /**
+         * 結果コードを持っているかどうか
+         * @return 結果コードを持っている場合は{@code true}
+         */
+        boolean hasReturnCode() {
+            return StringUtil.hasValue(returnCode);
+        }
+
+        /**
+         * 処理が成功したかどうか
+         *
+         * @return 成功した場合は{@code true}
+         */
+        boolean isSuccess() {
+            return Objects.equals(returnCode, "success");
+        }
+
+        /**
+         * エラー内容がバリデーションエラーかどうか
+         *
+         * @return バリデーションエラーの場合{@code true}
+         */
+        boolean isValidationError() {
+            return Objects.equals(returnCode, "error.validation");
+        }
+
+        /**
+         * 予期せぬエラーが発生したかどうか
+         * @return 予期せぬエラーが発生いた場合は{@code true}
+         */
+        boolean isFatalError() {
+            return Objects.equals(returnCode, "fatal");
+        }
+
+        /**
+         * 結果コードを取得する。
+         * @return 結果コード
+         */
+        String getReturnCode() {
+            return returnCode;
+        }
+
+        /**
+         * 詳細情報を取得する。
+         * @return 詳細情報
+         */
+        Object getDetail() {
+            return response != null ? response.get("detail") : null;
+        }
     }
 }
