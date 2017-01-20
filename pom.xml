@@ -20,8 +20,6 @@
     <!-- 環境ごとのリソースディレクトリ(プロファイルにより切り替わる) -->
     <env.resources>${project.basedir}/src/env/${env.dir}/resources</env.resources>
 
-    <!-- toolsディレクトリへのパス -->
-    <nablarch.tools.dir>${project.basedir}/tools</nablarch.tools.dir>
     <!-- gsp-dba-maven-pluginが使用するデータベース設定 -->
     <nablarch.db.jdbcDriver>org.h2.Driver</nablarch.db.jdbcDriver>
     <nablarch.db.url>jdbc:h2:./h2/db/SAMPLE</nablarch.db.url>
@@ -245,14 +243,6 @@
       <artifactId>nablarch-fw-messaging-http</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- verifyフェーズでAnt経由でfindbugsを実行する際に使用する -->
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>findbugs</artifactId>
-      <version>3.0.1</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -294,19 +284,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
       </plugin>
-      <!-- ant経由で各種ツールを起動する。実行対象のツールは、
-      Findbugs、使用許可API一覧作成ツールである -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <!-- JSP静的解析ツールは必要ないため、実行しないように設定を上書きする。 -->
-            <id>verify-jsp</id>
-            <phase>none</phase>
-          </execution>
-        </executions>
-      </plugin>
       <!-- レポーティング用のプラグインを追加 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -314,42 +291,6 @@
         <configuration>
           <!-- MANIFEST.MFでClass-Pathを指定すると、依存jar内で定義されているtaglibのuriを正しく解決してくれない。 -->
           <useManifestOnlyJar>false</useManifestOnlyJar>
-        </configuration>
-      </plugin>
-      <!-- Check Style実行 -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <excludes>
-            **/com/nablarch/example/app/entity/*.java
-          </excludes>
-        </configuration>
-      </plugin>
-      <!-- findBugs -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>findbugs</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <xmlOutput>true</xmlOutput>
-          <excludeFilterFile>${findbugs.config.filter.production}</excludeFilterFile>
-          <jvmArgs>-Dnablarch-findbugs-config=${findbugs.config.published.production}</jvmArgs>
-          <plugins>
-            <plugin>
-              <groupId>com.nablarch.framework</groupId>
-              <artifactId>nablarch-testing</artifactId>
-              <!-- プラグインに内包するモジュールはバージョン指定必須 -->
-              <version>1.0.7</version>
-            </plugin>
-          </plugins>
         </configuration>
       </plugin>
       <!-- カバレッジ取得 -->
@@ -364,17 +305,6 @@
           </excludes>
         </configuration>
       </plugin>
-
-      <!--
-      Mavenの各フェーズで自動実行するように設定するゴールについて、Eclipseのm2eプラグインがどのように扱うかの設定。
-      Eclipse使用中、自動ビルド時にMaven経由でFindbugs及びJSP静的解析ツールが実行されるようであれば、コメントアウトを解除する。
-       -->
-      <!--
-      <plugin>
-        <groupId>org.eclipse.m2e</groupId>
-        <artifactId>lifecycle-mapping</artifactId>
-      </plugin>
-       -->
       <!-- ================ここまで任意で使用するツールの設定================ -->
     </plugins>
   </build>
