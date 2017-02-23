@@ -100,9 +100,6 @@
     <!-- グローバルエラーハンドラ -->
     <component class="nablarch.fw.handler.GlobalErrorHandler" />
 
-    <!-- スレッドコンテキスト設定ハンドラ -->
-    <component-ref name="threadContextHandler" />
-
     <!-- データベース接続ハンドラ -->
     <component-ref name="dbConnectionManagementHandler" />
 
@@ -123,9 +120,6 @@
 
     <!-- ループ・トランザクション制御ハンドラ -->
     <component-ref name="loopHandler" />
-
-    <!--処理停止ハンドラ-->
-    <component-ref name="processStopHandler" />
 
     <!-- データリードハンドラ -->
     <component-ref name="dataReadHandler" />
