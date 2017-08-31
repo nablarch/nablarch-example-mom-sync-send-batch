@@ -1,5 +1,10 @@
 nablarch-example-mom-sync-send-batch
 ====================================
+
+| master | develop |
+|:-----------|:------------|
+|[![Build Status](https://travis-ci.org/nablarch/nablarch-example-mom-sync-send-batch.svg?branch=master)](https://travis-ci.org/nablarch/nablarch-example-mom-sync-send-batch)|[![Build Status](https://travis-ci.org/nablarch/nablarch-example-mom-sync-send-batch.svg?branch=develop)](https://travis-ci.org/nablarch/nablarch-example-mom-sync-send-batch)|
+
 Nablarch FrameworkのMOM同期応答メッセージングの送信側のExampleです。
 MOM同期応答メッセージングの受信側のExampleと組み合わせて使用します。
 
