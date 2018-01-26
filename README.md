@@ -38,21 +38,20 @@ Gitを使用しない場合、最新のタグからzipをダウンロードし�
 まず、データベースのセットアップ及びエンティティクラスの作成を行います。以下のコマンドを実行してください。
 
     $cd nablarch-example-mom-sync-send-batch
-    $mvn -P gsp clean generate-resources
-    $mvn -P gsp install:install-file
+    $mvn clean generate-resources
 
 #### 3.2. アプリケーションのビルド
 次に、アプリケーションをビルドします。以下のコマンドを実行してください。
 
-    $mvn clean package
+    $mvn package
 
 ### 4. アプリケーションの起動
 
 先にMOM同期応答メッセージングの受信側のExampleを起動しておいてください。
 
-以下のコマンドで、MOM同期応答メッセージングの送信側のExampleが起動します。
+以下のコマンドで、データベースの状態を最新化、MOM同期応答メッセージングの送信側のExampleが起動します。
 
-    $mvn -P gsp gsp-dba:import-schema
+    $mvn generate-resources
     $mvn exec:java -Dexec.mainClass=nablarch.fw.launcher.Main -Dexec.args="'-diConfig' 'messaging-sync-send-boot.xml' '-requestPath' 'SendProjectInsertMessageAction' '-userId' 'batch_user'"
 
 なお、 `maven-assembly-plugin` を使用して実行可能jarの生成を行っているため、以下のコマンドでもアプリケーションを実行することが可能です。
