@@ -10,6 +10,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/gsp-target/generated-sources/entity" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/entity" isTestSource="false" generated="true" />
       <excludeFolder url="file://$MODULE_DIR$/gsp-target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
@@ -64,7 +65,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.eclipse.jdt.core.compiler:ecj:3.5.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mortbay.jetty:jsp-api-2.1-glassfish:2.1.v20100127" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.nablarch.configuration:nablarch-testing-default-configuration:1.0.2" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: com.h2database:h2:1.4.192" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: com.h2database:h2:1.4.196" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: commons-dbcp:commons-dbcp:1.4" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: commons-pool:commons-pool:1.5.4" level="project" />
     <orderEntry type="library" name="Maven: com.nablarch.framework:nablarch-fw-messaging:1.1.0" level="project" />
