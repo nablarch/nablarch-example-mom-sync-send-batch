@@ -73,7 +73,8 @@ local.properties
 #*.iml
 
 ## Directory-based project format:
-#.idea/
+.idea/
+*.iml
 
 ## File-based project format:
 *.ipr
