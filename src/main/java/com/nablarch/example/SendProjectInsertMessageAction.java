@@ -10,7 +10,7 @@ import nablarch.core.db.statement.ParameterizedSqlPStatement;
 import nablarch.core.db.statement.SqlRow;
 import nablarch.core.log.Logger;
 import nablarch.core.log.LoggerManager;
-import nablarch.core.util.DateUtil;
+import nablarch.core.text.FormatterUtil;
 import nablarch.core.util.StringUtil;
 import nablarch.fw.DataReader;
 import nablarch.fw.ExecutionContext;
@@ -48,14 +48,10 @@ public class SendProjectInsertMessageAction extends BatchAction<SqlRow> {
         // 要求電文のデータレコードを用意するために、書式変換を行う。
         // (キーの大文字小文字変換はフレームワークが行うため実装不要
         Date projectStartDate = inputData.getDate("PROJECT_START_DATE");
-        if (projectStartDate != null) {
-            inputData.put("PROJECT_START_DATE", DateUtil.formatDate(projectStartDate, DATE_FORMAT));
-        }
+        inputData.put("PROJECT_START_DATE", FormatterUtil.format("dateTime", projectStartDate, DATE_FORMAT));
 
         Date projectEndDate = inputData.getDate("PROJECT_END_DATE");
-        if (projectEndDate != null) {
-            inputData.put("PROJECT_END_DATE", DateUtil.formatDate(projectEndDate, DATE_FORMAT));
-        }
+        inputData.put("PROJECT_END_DATE", FormatterUtil.format("dateTime", projectEndDate, DATE_FORMAT));
 
         // 要求電文を送信する。
         // 送信時に、フレームワークが「要求電文のフォーマット定義」に従って、dataRecord変数の内容を電文に変換する。
