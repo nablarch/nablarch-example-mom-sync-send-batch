@@ -100,6 +100,12 @@
     <!-- グローバルエラーハンドラ -->
     <component class="nablarch.fw.handler.GlobalErrorHandler" />
 
+    <!-- スレッドコンテキスト変数削除ハンドラ -->
+    <component class="nablarch.common.handler.threadcontext.ThreadContextClearHandler" />
+
+    <!-- スレッドコンテキスト設定ハンドラ -->
+    <component-ref name="threadContextHandler" />
+
     <!-- データベース接続ハンドラ -->
     <component-ref name="dbConnectionManagementHandler" />
 
