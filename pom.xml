@@ -81,6 +81,12 @@
       <scope>runtime</scope>
     </dependency>
 
+    <dependency>
+      <groupId>com.nablarch.integration</groupId>
+      <artifactId>slf4j-nablarch-adaptor</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
     <!-- MOMメッセージング用に追加したライブラリここから============================= -->
     <dependency>
       <groupId>com.nablarch.framework</groupId>
