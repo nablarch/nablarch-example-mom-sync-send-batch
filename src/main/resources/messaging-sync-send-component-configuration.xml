@@ -36,7 +36,7 @@
 
   <!-- メッセージング用コンポーネント定義ここから============================================================================================= -->
   <!-- 同期応答メッセージ送信固有の設定読み込み -->
-  <config-file file="messaging/messaging.config" />
+  <config-file file="messaging/messaging.properties"/>
 
   <!-- フォーマット定義ファイルの配置先パス、拡張子の設定 -->
   <component name="filePathSetting" class="nablarch.core.util.FilePathSetting" autowireType="None">
