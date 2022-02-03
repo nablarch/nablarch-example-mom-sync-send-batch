@@ -1,22 +1,24 @@
 package com.nablarch.example;
 
-import org.junit.Test;
-
-import com.nablarch.example.test.BatchRequestTestBase;
+import nablarch.test.core.batch.BatchRequestTestSupport;
+import nablarch.test.junit5.extension.batch.BatchRequestTest;
+import org.junit.jupiter.api.Test;
 
 /**
  */
-public class SendProjectInsertMessageRequestTest extends BatchRequestTestBase {
+@BatchRequestTest
+class SendProjectInsertMessageRequestTest {
+    BatchRequestTestSupport support;
 
     /** 正常終了のテストケース。 */
     @Test
-    public void testNormalEnd() {
-        execute();
+    void testNormalEnd() {
+        support.execute(support.testName.getMethodName());
     }
 
     /** 異常終了のテストケース。 */
     @Test
-    public void testAbnormalEnd() {
-        execute();
+    void testAbnormalEnd() {
+        support.execute(support.testName.getMethodName());
     }
 }
