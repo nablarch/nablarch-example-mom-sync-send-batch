@@ -12,8 +12,8 @@ MOM同期応答メッセージングの受信側のExampleと組み合わせて�
 
 ### 1.動作環境
 実行環境に以下のソフトウェアがインストールされている事を前提とします。
-* Java Version : 8
-* Maven 3.0.5以降
+* Java Version : 17
+* Maven 3.9.0以降
 
 補足：
 MOMは、MOM同期応答メッセージングの受信側のExampleに組み込まれたものを使用します。
@@ -56,50 +56,65 @@ Gitを使用しない場合、最新のタグからzipをダウンロードし�
 起動に成功すると、MOM同期応答メッセージングの受信側との通信を行い、以下のようなログがコンソールに出力されます。
 ログ出力後、本Exampleは自動的に終了します。
 
-    2016-06-07 17:18:33.232 -INFO- ROO [null] @@@@ APPLICATION SETTINGS @@@@
-            system settings = {
-            }
-            business date = [20140123]
-    2016-06-07 17:18:33.248 -INFO- ROO [201606071718332480002] execute PROJECT_INS_REQ_ID [1]
-    2016-06-07 17:18:34.077 -INFO- ROO [201606071718332480002] @@@@ SENT MESSAGE @@@@
-            thread_name    = [pool-1-thread-1]
-            message_id     = [ID:S1306C00419-T1-58114-1465287513655-1:1:1:1:1]
-            destination    = [TEST.REQUEST]
-            correlation_id = [null]
-            reply_to       = [TEST.RESPONSE]
-            time_to_live   = [0]
-            message_body   = [ProjectInsertMessage0
-    プロジェクト００１
-                                                                                                                                               development
+```log
+2023-02-15 13:30:08.479 -INFO- nablarch.fw.launcher.Main [null] boot_proc = [] proc_sys = [mom-sync-send-bat
+ch] req_id = [null] usr_id = [null] @@@@ APPLICATION SETTINGS @@@@
+        system settings = {
+        }
+        business date = [20140123]
+2023-02-15 13:30:08.506 -INFO- com.nablarch.example.SendProjectInsertMessageAction [202302151330085060002] b
+oot_proc = [] proc_sys = [mom-sync-send-batch] req_id = [SendProjectInsertMessageAction] usr_id = [batch_use
+r] start
+2023-02-15 13:30:09.178 -INFO- MESSAGING [202302151330085060002] boot_proc = [] proc_sys = [mom-sync-send-ba
+tch] req_id = [SendProjectInsertMessageAction] usr_id = [batch_user] @@@@ SENT MESSAGE @@@@
+        thread_name    = [pool-1-thread-1]
+        message_id     = [ID:6e02d455-ace9-11ed-bf95-9c7befbbf589]
+        destination    = [TEST.REQUEST]
+        correlation_id = [null]
+        reply_to       = [TEST.RESPONSE]
+        time_to_live   = [0]
+        message_body   = [ProjectInsertMessage0
+プロジェクト００１
 
-                                                       s
-                                                                                                                                                                                                           20100918201504091        鈴木
+                                        development
+                                                            s
+                                                                                20100918201504091        鈴
+木
 
-                                                                                                                                          佐藤
+                                      佐藤
 
-                                                100      備考欄
-
-
+                                                                              100      備考欄
 
 
 
-                                                                                                                                                                              10000    1000     2000     3000
-    ]
-    2016-06-07 17:18:35.545 -INFO- ROO [201606071718332480002] @@@@ RECEIVED MESSAGE @@@@
-            thread_name    = [pool-1-thread-1]
-            message_id     = [ID:S1306C00419-T1-42773-1465286271571-4:1:1:1:1]
-            destination    = [TEST.RESPONSE]
-            correlation_id = [ID:S1306C00419-T1-58114-1465287513655-1:1:1:1:1]
-            reply_to       = [null]
-            message_body   = [ProjectInsertMessage0success
 
-    ]
-    2016-06-07 17:18:35.685 -INFO- ROO [201606071718332320001]
-    Thread Status: normal end.
-    Thread Result:[200 Success] The request has succeeded.
-    2016-06-07 17:18:35.685 -INFO- ROO [201606071718332320001] TOTAL COMMIT COUNT = [1]
-    2016-06-07 17:18:35.685 -INFO- ROO [201606071718332320001] @@@@ END @@@@ exit code = [0] execute time(ms) = [3395]
 
+
+
+
+
+                               10000    1000     2000     3000
+]
+2023-02-15 13:30:09.609 -INFO- MESSAGING [202302151330085060002] boot_proc = [] proc_sys = [mom-sync-send-ba
+tch] req_id = [SendProjectInsertMessageAction] usr_id = [batch_user] @@@@ RECEIVED MESSAGE @@@@
+        thread_name    = [pool-1-thread-1]
+        message_id     = [ID:6e481b72-ace9-11ed-8a28-9c7befbbf589]
+        destination    = [TEST.RESPONSE]
+        correlation_id = [ID:6e02d455-ace9-11ed-bf95-9c7befbbf589]
+        reply_to       = [null]
+        message_body   = [ProjectInsertMessage0
+success
+]
+2023-02-15 13:30:09.663 -INFO- nablarch.fw.handler.MultiThreadExecutionHandler [202302151330084800001] boot_
+proc = [] proc_sys = [mom-sync-send-batch] req_id = [SendProjectInsertMessageAction] usr_id = [batch_user]
+Thread Status: normal end.
+Thread Result:[200 Success] The request has succeeded.
+2023-02-15 13:30:09.665 -INFO- nablarch.core.log.app.BasicCommitLogger [202302151330084800001] boot_proc = [
+] proc_sys = [mom-sync-send-batch] req_id = [SendProjectInsertMessageAction] usr_id = [batch_user] TOTAL COM
+MIT COUNT = [1]
+2023-02-15 13:30:09.669 -INFO- nablarch.fw.launcher.Main [null] boot_proc = [] proc_sys = [mom-sync-send-bat
+ch] req_id = [null] usr_id = [null] @@@@ END @@@@ exit code = [0] execute time(ms) = [2659]
+```
 
 ### 5. DBの確認方法
 
