@@ -8,14 +8,16 @@
   <packaging>jar</packaging>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <db.adminUser>SAMPLE</db.adminUser>
     <db.user>SAMPLE</db.user>
+    
+    <activemq.version>2.28.0</activemq.version>
   </properties>
 
   <profiles>
@@ -73,7 +75,7 @@
       <artifactId>nablarch-testing-default-configuration</artifactId>
       <scope>test</scope>
     </dependency>
-
+    
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
@@ -107,8 +109,13 @@
 
     <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-all</artifactId>
-      <version>5.13.0</version>
+      <artifactId>artemis-server</artifactId>
+      <version>${activemq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jakarta-client</artifactId>
+      <version>${activemq.version}</version>
     </dependency>
     <!-- MOMメッセージング用に追加したライブラリここまで============================= -->
 
@@ -136,7 +143,7 @@
       <plugin>
         <groupId>jp.co.tis.gsp</groupId>
         <artifactId>gsp-dba-maven-plugin</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
         <configuration>
           <adminUser>${db.adminUser}</adminUser>
           <adminPassword>${db.adminUser}</adminPassword>
@@ -168,7 +175,6 @@
             <goals>
               <goal>generate-ddl</goal>
               <goal>execute-ddl</goal>
-              <goal>generate-entity</goal>
               <goal>load-data</goal>
             </goals>
           </execution>
