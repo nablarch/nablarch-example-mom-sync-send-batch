@@ -4,7 +4,7 @@
 
   <groupId>com.nablarch.example</groupId>
   <artifactId>nablarch-example-mom-sync-send-batch</artifactId>
-  <version>6-NEXT-SNAPSHOT</version>
+  <version>6</version>
   <packaging>jar</packaging>
 
   <properties>
@@ -37,7 +37,7 @@
       <dependency>
         <groupId>com.nablarch.profile</groupId>
         <artifactId>nablarch-bom</artifactId>
-        <version>6-NEXT-SNAPSHOT</version>
+        <version>6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -143,7 +143,7 @@
       <plugin>
         <groupId>jp.co.tis.gsp</groupId>
         <artifactId>gsp-dba-maven-plugin</artifactId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.0.0</version>
         <configuration>
           <adminUser>${db.adminUser}</adminUser>
           <adminPassword>${db.adminUser}</adminPassword>
