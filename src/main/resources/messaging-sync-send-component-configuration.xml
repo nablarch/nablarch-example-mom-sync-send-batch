@@ -71,7 +71,7 @@
         <component class="nablarch.core.repository.jndi.JndiHelper">
           <property name="jndiProperties">
              <map>
-                 <entry key="java.naming.factory.initial" value="org.apache.activemq.jndi.ActiveMQInitialContextFactory"/>
+                 <entry key="java.naming.factory.initial" value="org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"/>
                  <entry key="java.naming.provider.url"    value="tcp://localhost:61616"/>
              </map>
            </property>
