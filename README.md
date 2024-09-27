@@ -13,7 +13,7 @@ MOM同期応答メッセージングの受信側のExampleと組み合わせて�
 ### 1.動作環境
 実行環境に以下のソフトウェアがインストールされている事を前提とします。
 * Java Version : 17
-* Maven 3.9.0以降
+* Maven 3.9.9以降
 
 補足：
 MOMは、MOM同期応答メッセージングの受信側のExampleに組み込まれたものを使用します。
@@ -30,16 +30,25 @@ Gitを使用している場合、アプリケーションを配置したいデ�
 Gitを使用しない場合、最新のタグからzipをダウンロードし、任意のディレクトリへ展開してください。
 
 ### 3. アプリケーションのビルド
-#### 3.1. データベースのセットアップ及びエンティティクラスの作成
-まず、データベースのセットアップ及びエンティティクラスの作成を行います。以下のコマンドを実行してください。
+アプリケーションをビルドします。以下のコマンドを実行してください。
 
     $cd nablarch-example-mom-sync-send-batch
-    $mvn clean generate-resources
-
-#### 3.2. アプリケーションのビルド
-次に、アプリケーションをビルドします。以下のコマンドを実行してください。
-
     $mvn package
+
+実行に成功すると、以下のようなログがコンソールに出力されます。
+
+    (中略)
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    (中略)
+
+#### データベースのセットアップ及びエンティティクラスの作成について
+
+アプリケーションを実行するためにはデータベースのセットアップ及びエンティティクラスの作成が必要ですが、これは`mvn package`の実行に含まれています。この処理は`mvn generate-resources`で個別に実行することもできます。
+
+※gspプラグインをJava 17で実行するためにはJVMオプションの指定が必要ですが、そのオプションは`.mvn/jvm.config`で指定しています。
+
 
 ### 4. アプリケーションの起動
 
@@ -51,6 +60,7 @@ Gitを使用しない場合、最新のタグからzipをダウンロードし�
     $mvn exec:java -Dexec.mainClass=nablarch.fw.launcher.Main -Dexec.args="'-diConfig' 'messaging-sync-send-boot.xml' '-requestPath' 'SendProjectInsertMessageAction' '-userId' 'batch_user'"
 
 なお、 `maven-assembly-plugin` を使用して実行可能jarの生成を行っているため、以下のコマンドでもアプリケーションを実行することが可能です。
+    
     $java -jar target/application-<version_no>.jar -diConfig classpath:messaging-sync-send-boot.xml -requestPath SendProjectInsertMessageAction -userId batch_user
 
 起動に成功すると、MOM同期応答メッセージングの受信側との通信を行い、以下のようなログがコンソールに出力されます。
