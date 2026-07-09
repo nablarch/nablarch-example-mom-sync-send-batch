@@ -134,7 +134,7 @@ ch] req_id = [null] usr_id = [null] @@@@ END @@@@ exit code = [0] execute time(m
   ※h2.bat実行中はExampleアプリケーションからDBへアクセスすることができないため、Exampleアプリケーションを停止しておいてください。
 
 3. ブラウザから http://localhost:8082 を開き、以下の情報でH2コンソールにログインしてください。
-   JDBC URLの{dbファイルのパス}には、`SAMPLE.h2.db`ファイルの格納ディレクトリまでのパスを指定してください。  
+   JDBC URLの{dbファイルのパス}には、`SAMPLE.mv.db`ファイルの格納ディレクトリまでのパスを指定してください。  
   JDBC URL：jdbc:h2:{dbファイルのパス}/SAMPLE  
   ユーザ名：SAMPLE  
   パスワード：SAMPLE
