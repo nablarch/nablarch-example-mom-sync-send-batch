@@ -106,17 +106,17 @@ web / batch は、テスト対象アクションを別 diConfig で起動し **�
 
 （検証: 実 jar の `YamlLoader.isResourceExisting` をリフレクションで直接呼び出し true を確認。テスト実行時のみ false になるのは、実行時リポジトリの parser が BasicTestDataParser だからという整合的な説明が付く。）
 
-## 5. 影響と推奨（修正は未実施）
+## 5. 影響と実施した対応（解決済み）
 
 - 本件は **設定の不足**（アクション起動 config に YAML 対応が無い）に起因し、コンバータ出力や YAML 構造の問題ではない。
-- 候補となる対応（ユーザー判断用。本レポートでは**未適用**）:
-  1. **`src/test/resources/messaging-sync-send-boot.xml` 側にも** `yamlInterpreters` と `YamlTestDataParser` の `testDataParser` 上書きを追加する（＝アクション実行時リポジトリでも YAML リーダーを使う）。web/batch の unit-test.xml 相当の設定を、本 Example では「アクション起動 config」にも反映する必要がある、という本 Example 固有の追加設定。
-     - この場合、§4 のとおり YAML リソース解決は成功する見込み。残る errorMode 列の差（①）は挙動非影響のため問題にならない見込み（ただし実テストでの最終確認が必要）。
-  2. 1 を実施してもモック読込が YAML を正しく解釈するか（`YamlTestDataParser.getSendSyncMessage` のファイル配置互換）を Task #5 相当で再検証する。
-- いずれも設定変更＝テストデータ移行の範囲を超えるため、適用可否はユーザー判断に委ねる。
+- **実施した対応（コミット `b31c3ba`）**:
+  1. **`src/test/resources/messaging-sync-send-boot.xml` に** `yamlInterpreters` と `YamlTestDataParser` の `testDataParser` 上書きを追加（アクション実行時リポジトリでも YAML リーダーを使う）。`unit-test.xml` は同ファイルを import するため、重複定義は削除して**単一ソース化**。本 Example（MOM同期送信）固有の、アクション起動 config への反映。
+  2. 再テスト `mvn clean test` → **BUILD SUCCESS（Tests run: 2, Failures: 0）**。`YamlTestDataParser.getSendSyncMessage` による応答電文の YAML 読込も含め、起動時・実行時の両経路で YAML リーダーが使われることをログで確認。
+- 残る errorMode 列の差（①）は、この再テスト全パスにより挙動非影響であることを確認済み（defect ではない）。
 
-## 付録: エビデンス
+## 付録: エビデンス（調査時点＝修正前の状態）
 
-- 実ファイル: `src/test/resources/unit-test.xml`（override あり）, `src/test/resources/messaging-sync-send-boot.xml`（override なし・モック定義・test-data.xml import）, testShots `diConfig: messaging-sync-send-boot.xml`
+- 実ファイル（修正前）: `src/test/resources/unit-test.xml`（override あり）, `src/test/resources/messaging-sync-send-boot.xml`（override なし・モック定義・test-data.xml import）, testShots `diConfig: messaging-sync-send-boot.xml`
+  - ※修正後（b31c3ba）は override を messaging-sync-send-boot.xml に集約し、unit-test.xml 側は削除。
 - ソース（`*-sources.jar`）: `TestSupport`(getResourceName/getPathOf/getPathResourceExisting/getTestDataParser=SystemRepository.get("testDataParser")), `RequestTestingSendSyncSupport`(getMessages L112), `RequestTestingMessagingProvider`(mock), `BasicTestDataParser`/`PoiXlsReader.isResourceExisting`（Excel 探索）, `YamlLoader.isResourceExisting`/`buildContainerPath`（ディレクトリ判定）
-- 実機確認: 現状（YAML あり・Excel なし）で `mvn test` は再現性をもって同一エラー。`YamlLoader.isResourceExisting(...)` 単体呼び出しは true。
+- 実機確認（修正前）: YAML あり・Excel なしで `mvn test` が再現性をもって同一エラー。`YamlLoader.isResourceExisting(...)` 単体呼び出しは true。修正後は同条件で BUILD SUCCESS。

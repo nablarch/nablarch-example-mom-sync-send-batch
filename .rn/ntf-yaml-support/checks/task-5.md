@@ -2,20 +2,17 @@
 
 ## Completion Criteria
 
-> **【解決済み】**（修正コミット `b31c3ba`）: 下記の根本原因②に対し、`messaging-sync-send-boot.xml` 側に `yamlInterpreters`＋`YamlTestDataParser` 上書きを集約（`unit-test.xml` の重複は削除）。再テストで BUILD SUCCESS。以下の表は修正後の結果。失敗の経緯と根本原因は記録として下部に温存する。
+> 本タスクは当初 BUILD FAILURE だったが、根本原因を特定し `messaging-sync-send-boot.xml` 側へ YAML 設定を集約する修正（コミット `b31c3ba`）で解決し、再テストで BUILD SUCCESS となった。以下の表は修正後の結果。経緯は下部「前回の失敗と今回の対応（経緯）」に記載。
 
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
-| mvn test が BUILD SUCCESS（全テストパス、Excelなし） | OK | `LANG=ja_JP.UTF-8 mvn clean test`: `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS`（2026-10-06、修正コミット b31c3ba 後）。Excel不在（残存0件）で全パス | | |
-| テストログで YamlTestDataParser が使われている | OK | `testDataParser` 上書きログが2回出力（起動時のテストリポジトリ＋アクション実行時に diConfig で再初期化されたリポジトリ）。いずれも `override ... YamlTestDataParser` と `YamlTestDataParser does not use TestDataReader;`。実行時も YAML リーダーが使われていることを確認 | | |
+| mvn test が BUILD SUCCESS（全テストパス、Excelなし） | OK | `LANG=ja_JP.UTF-8 mvn clean test`: `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS`（2026-10-06、修正コミット b31c3ba 後）。Excel不在（残存0件）で全パス | OK | `mvn clean test` を独立に再現し `Tests run: 2, Failures: 0`/BUILD SUCCESS を確認。`find . -iname '*.xls*'` でリポジトリ全体0件を確認し、Excel経由で通っていないことを担保 |
+| テストログで YamlTestDataParser が使われている | OK | `testDataParser` 上書きログが2回出力（起動時のテストリポジトリ＋アクション実行時に diConfig で再初期化されたリポジトリ）。いずれも `override ... YamlTestDataParser` と `YamlTestDataParser does not use TestDataReader;`。実行時も YAML リーダーが使われていることを確認 | OK | override ログ2回（起動時／アクション実行時の再初期化後）と `YamlTestDataParser does not use TestDataReader;` の両出力を独立に確認。YAML↔Javaメソッド対応に過不足なし |
 
-## 失敗の根本原因（確定・修正せず停止）
+## 前回の失敗と今回の対応（経緯）
 
-> **確定根本原因**（詳細: `reports/task-5-sendsync-resource-root-cause.md`）:
-> テストのセットアップ/検証は `unit-test.xml`（YamlTestDataParser 上書きあり）で動くが、**アクション本体は testShots の `diConfig: messaging-sync-send-boot.xml` で起動**され、その config には YAML 上書きが無いため、実行時リポジトリの `testDataParser` は既定の **BasicTestDataParser（Excelリーダー）**。モックが応答電文を Excel から探すが、Excel は Task #4 で削除済みのため `couldn't find resource` となる。
-> → YAML のファイル/ディレクトリ構造の問題ではなく、**アクション起動 config 側に YAML 対応設定が無い**という設定不足が真因。下記の当初推定（ディレクトリ前提説）は §4 のとおり誤りであり訂正済み。
-
-`mvn clean test` は BUILD FAILURE。MOM同期送信の応答電文モックが応答電文のテストデータリソースを解決できず例外発生。
+### 前回の失敗内容
+Task #4 で Excel を削除した状態の `mvn clean test` が **BUILD FAILURE**。MOM同期送信の応答電文モックが応答電文のテストデータリソースを解決できず例外発生。
 
 ```
 java.lang.IllegalArgumentException: couldn't find resource
@@ -35,6 +32,14 @@ java.lang.IllegalArgumentException: couldn't find resource
   - `BasicTestDataParser.isResourceExisting` → `PoiXlsReader.isResourceExisting` は `src/test/java/com/nablarch/example` 配下に `SendProjectInsertMessageRequestTest.xls/.xlsx` を探す。**Excelは Task #4 で削除済み → 未検出 → false → 例外**。
   - 検証: `YamlLoader.isResourceExisting(base, "SendProjectInsertMessageRequestTest/testAbnormalEnd")` をリフレクションで直接呼ぶと **true**（＝YAMLリーダーが使われていれば解決できる）。失敗はあくまで実行時 parser が Excel リーダーであることによる。
 - つまり **アクション起動 config（messaging-sync-send-boot.xml）に YAML 対応設定（YamlTestDataParser 上書き＋yamlInterpreters）が無い**ことが真因。web / batch Example は、アクション実行中にメッセージングモックがテストデータを再読込する経路を持たないため顕在化しなかった、本 Example（MOM同期送信）固有の設定不足。
+
+（補足: 当初はバイトコード推定から「`YamlLoader` がディレクトリを要求し、コンバータはファイル出力のため不整合」と推定したが、`YamlLoader.isResourceExisting` 単体呼び出しが true を返すことから誤りと判明し、上記の「実行時 parser が Excel リーダー」が真因と訂正した。詳細は `reports/task-5-sendsync-resource-root-cause.md`。）
+
+### 今回の対応内容（OKとなった経緯）
+1. 根本原因（実行時リポジトリの `testDataParser` が Excel リーダーのまま）に対し、**アクション起動 config である `messaging-sync-send-boot.xml`(test) に `yamlInterpreters`＋`YamlTestDataParser` の `testDataParser` 上書きを追加**（`dbInfo`/`test-data.xml` import より後に配置して参照解決）。`unit-test.xml` は同ファイルを import するため、重複定義は削除し**単一ソース化**（修正コミット `b31c3ba`）。
+2. これにより、セットアップ/検証（`unit-test.xml` 経由）だけでなく、**アクション実行時に diConfig で再初期化されるリポジトリでも YamlTestDataParser が有効**になり、応答電文モックが YAML から応答電文を読めるようになった。
+3. 再テスト `LANG=ja_JP.UTF-8 mvn clean test` → **BUILD SUCCESS（Tests run: 2, Failures: 0）**。override ログが起動時・実行時の両方で出力され、実行時も YAML リーダーが使われることを確認。Excel 残存0件で誤パスも排除。
+4. 併せて Task #3 の差異①（errorMode レコードの再送要求フラグ `0`→`""`）が挙動に影響しないこと（NTF 仕様どおり）も、この再テスト全パスで裏付けられた。
 
 ## QA Expert Review
 
