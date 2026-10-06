@@ -190,5 +190,5 @@ LANG=ja_JP.UTF-8 mvn test
 - **Blocked at**: #3（サンプリング差異 NG）, #5（BUILD FAILURE）
 - **検出した2件の問題（いずれも修正せず報告）**:
   1. **変換差異（#3）**: `RESPONSE_HEADER_MESSAGES` case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（リクエストID列が `errorMode:...` のケース）。EXPECTED_REQUEST_HEADER 側の同じ `0` は正常変換。→ **根本原因調査完了**（`reports/task-3-response-header-diff-root-cause.md`）: NTF `SendSyncMessageParser` が errorMode レコードはマーカーのみ残す仕様どおりの挙動で、落ちた `0` は未使用のデッドデータ＝**挙動等価**（コンバータのバグではない）。
-  2. **テスト失敗（#5）**: Excelなし `mvn clean test` が BUILD FAILURE。MOM同期送信の応答電文モックが YAML リソースを解決できない（`RequestTestingSendSyncSupport`→`TestSupport.getPathOf`→`YamlLoader.isResourceExisting` がディレクトリ `.../<メソッド>/` を要求するが、コンバータ出力は `.../<メソッド>.yaml` ファイル）。
+  2. **テスト失敗（#5）**: Excelなし `mvn clean test` が BUILD FAILURE。→ **根本原因調査完了**（`reports/task-5-sendsync-resource-root-cause.md`）: テストは `unit-test.xml`（YamlTestDataParser 上書きあり）で動くが、**アクションは `diConfig: messaging-sync-send-boot.xml` で起動され、そちらに上書きが無い**ため実行時 `testDataParser` が BasicTestDataParser（Excelリーダー）のまま。モックが Excel から応答電文を探し、削除済みのため未検出。設定不足（アクション起動configにYAML対応が無い）が真因で、YAML構造の問題ではない（初版のディレクトリ前提説は誤りで訂正済み）。候補対応: messaging-sync-send-boot.xml 側にも YAML 上書きを追加（未適用）。
 - **Notes**: 対象Excelは `SendProjectInsertMessageRequestTest.xlsx` の1件のみ（`.xls`併存なし）。削除済みExcelは `git show ea87965:...xlsx` で復元可能。web/batch では sync-send 応答電文モックを使わないため本問題は未発生。ブランチ ntf-yaml-support はコミット済み（未push）。
