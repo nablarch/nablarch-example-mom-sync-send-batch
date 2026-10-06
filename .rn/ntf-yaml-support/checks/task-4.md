@@ -13,8 +13,8 @@
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | | |
-| Edge case coverage | | |
+| Meaningful tests/verification | OK | 残存Excel0件を `find` と `git ls-files` で独立確認。対応YAML3件が削除で失われていないことを確認 |
+| Edge case coverage | OK | .xls/.xlsx 両形式・全リポジトリ・ダングリング参照・ワーキングツリー汚染までカバー。空 setUpDb.yaml は Task #3 由来で本タスク範囲外（申し送り） |
 
 ## Expert Reviews (code changes only)
 
@@ -23,5 +23,5 @@ N/A — no code changes in this task.
 ## Overall Verdict
 
 - Self-check: OK
-- QA: (pending)
-- Ready for user review: (pending)
+- QA: OK
+- Ready for user review: Yes

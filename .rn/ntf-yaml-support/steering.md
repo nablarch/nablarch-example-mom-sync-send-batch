@@ -96,9 +96,9 @@ LANG=ja_JP.UTF-8 mvn test
 - [x] `mvn dependency:resolve` で yaml 依存が解決できること、`mvn help:describe` で converter プラグインの `convert` ゴールが解決できることを確認する
 - [x] 変更したファイルをコミットする
 - [x] self-check (OK/NG per completion criterion, record in checks/task-2.md)
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
-- [ ] language expert review (Agent: general-purpose / Opus 4.8)
-- [ ] software-engineering expert review (Agent: general-purpose / Opus 4.8)
+- [x] QA expert review (Agent: general-purpose / Opus 4.8) — OK
+- [x] language expert review (Agent: general-purpose / Opus 4.8) — OK
+- [x] software-engineering expert review (Agent: general-purpose / Opus 4.8) — OK
 - [ ] user review
 
 **Completion criteria**:
@@ -122,9 +122,11 @@ LANG=ja_JP.UTF-8 mvn test
 - [x] 変換後、各YAMLファイルについてExcelの内容とサンプリングで比較し、一致を確認する（各ファイル3件以上、差異なし）
 - [x] サンプリング比較結果を `checks/task-3.md` に記録する
 - [x] 変換したYAMLファイルをコミットする（Excelはまだ削除しない）
-- [x] self-check (OK/NG per completion criterion, record in checks/task-3.md)
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
-- [ ] user review
+- [x] self-check (OK/NG per completion criterion, record in checks/task-3.md) — **NG（差異あり）**
+- [x] QA expert review (Agent: general-purpose / Opus 4.8) — **NG（差異あり）**
+- [ ] user review — 差異のため停止・報告
+
+> ⚠ **差異検出**: RESPONSE_HEADER_MESSAGES case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（詳細は checks/task-3.md）。ルールに従い修正せず停止。
 
 **Completion criteria**:
 
@@ -144,7 +146,7 @@ LANG=ja_JP.UTF-8 mvn test
 - [x] 削除結果（残存Excelが0件であること）を `checks/task-4.md` に記録する
 - [x] Excelファイル削除をコミットする
 - [x] self-check (OK/NG per completion criterion, record in checks/task-4.md)
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
+- [x] QA expert review (Agent: general-purpose / Opus 4.8) — OK
 - [ ] user review
 
 **Completion criteria**:
@@ -160,13 +162,15 @@ LANG=ja_JP.UTF-8 mvn test
 
 **Steps**:
 
-- [ ] `mvn test` が BUILD SUCCESS になることを確認する
-- [ ] テストログで YamlTestDataParser が実際に使われていることを確認する
-- [ ] self-check (OK/NG per completion criterion, record in checks/task-5.md)
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
-- [ ] language expert review (Agent: general-purpose / Opus 4.8)
-- [ ] software-engineering expert review (Agent: general-purpose / Opus 4.8)
-- [ ] user review
+- [x] `mvn test` を実行した → **BUILD FAILURE**（Tests run: 2, Failures: 2）
+- [x] テストログで YamlTestDataParser が使われていることを確認（上書きログ出力あり）
+- [x] self-check (OK/NG per completion criterion, record in checks/task-5.md) — **NG（BUILD FAILURE）**
+- [ ] QA expert review — 停止
+- [ ] language expert review — 停止
+- [ ] software-engineering expert review — 停止
+- [ ] user review — テスト失敗のため停止・報告
+
+> ⚠ **テスト失敗**: MOM同期送信の応答電文リソースが解決できず例外（`couldn't find resource [SendProjectInsertMessageRequestTest/testAbnormalEnd]`）。sync-send 応答電文の YAML はディレクトリ前提で解決されるが、コンバータはファイル(`testAbnormalEnd.yaml`)を生成しており不整合（詳細は checks/task-5.md）。ルールに従い修正せず停止。
 
 **Completion criteria**:
 
@@ -180,8 +184,11 @@ LANG=ja_JP.UTF-8 mvn test
 
 # State
 
-- **Status**: in progress
+- **Status**: blocked（差異・テスト失敗のため停止、ユーザー報告待ち）
 - **Date**: 2026-10-06
-- **Last completed**: #1 現状ビルド・テスト全PASS確認（Tests run: 2, BUILD SUCCESS）
-- **Next**: #2 設定変更
-- **Notes**: 対象Excelは `SendProjectInsertMessageRequestTest.xlsx` の1件のみ（`.xls`併存なし）。
+- **Last completed（レビューOK）**: #1（OK）, #2（QA/Lang/SW-eng OK）, #4（Excel削除・QA OK）
+- **Blocked at**: #3（サンプリング差異 NG）, #5（BUILD FAILURE）
+- **検出した2件の問題（いずれも修正せず報告）**:
+  1. **変換差異（#3）**: `RESPONSE_HEADER_MESSAGES` case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（リクエストID列が `errorMode:...` のケース）。EXPECTED_REQUEST_HEADER 側の同じ `0` は正常変換。
+  2. **テスト失敗（#5）**: Excelなし `mvn clean test` が BUILD FAILURE。MOM同期送信の応答電文モックが YAML リソースを解決できない（`RequestTestingSendSyncSupport`→`TestSupport.getPathOf`→`YamlLoader.isResourceExisting` がディレクトリ `.../<メソッド>/` を要求するが、コンバータ出力は `.../<メソッド>.yaml` ファイル）。
+- **Notes**: 対象Excelは `SendProjectInsertMessageRequestTest.xlsx` の1件のみ（`.xls`併存なし）。削除済みExcelは `git show ea87965:...xlsx` で復元可能。web/batch では sync-send 応答電文モックを使わないため本問題は未発生。ブランチ ntf-yaml-support はコミット済み（未push）。

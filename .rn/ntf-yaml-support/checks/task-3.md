@@ -4,9 +4,9 @@
 
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
-| 変換対象の全ExcelにYAMLが生成されている | OK | `SendProjectInsertMessageRequestTest.xlsx`（3シート: setUpDb/testNormalEnd/testAbnormalEnd）→ `SendProjectInsertMessageRequestTest/setUpDb.yaml`・`testNormalEnd.yaml`・`testAbnormalEnd.yaml`（3ファイル）。`mvn ...:convert` が `Converted 1 file(s). BUILD SUCCESS` | | |
-| サンプリング比較でExcelとYAMLが一致 | OK | 各YAMLで3件以上をセル単位比較、差異なし（詳細は下記）。数値/文字列セルの区別も忠実、ルビ(phonetic)はセル値でないため非対象 | | |
-| 変換後YAMLがコミットされている | OK | YAMLのみステージしコミット（Excelは未削除） | | |
+| 変換対象の全ExcelにYAMLが生成されている | OK | `SendProjectInsertMessageRequestTest.xlsx`（3シート: setUpDb/testNormalEnd/testAbnormalEnd）→ `SendProjectInsertMessageRequestTest/setUpDb.yaml`・`testNormalEnd.yaml`・`testAbnormalEnd.yaml`（3ファイル）。`mvn ...:convert` が `Converted 1 file(s). BUILD SUCCESS` | OK | 3シート↔3YAML 1:1、setUpDb空も整合 |
+| サンプリング比較でExcelとYAMLが一致 | **NG（差異あり）** | RESPONSE_HEADER_MESSAGES case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（下記「差異あり」参照）。他は一致 | **NG** | 削除済Excelを git から取り出し再検証、case3/case4 の C列`0`→`""` 欠落を確認 |
+| 変換後YAMLがコミットされている | OK | YAMLのみステージしコミット（Excelは未削除） | OK | ea87965 は YAML+script+doc のみ |
 
 ### サンプリング比較詳細
 
@@ -32,17 +32,29 @@
 - expectedLog2(row78): FATAL / `メッセージ受信側でエラーが発生しました。詳細：invalid layout.` → YAML一致 ✓
 - expectedLog3,4(row133,188): FATAL / `メッセージの送信に失敗しました。` → YAML一致 ✓
 - RESPONSE_BODY case2(row101): `fatal`, `invalid layout.` → YAML `["fatal", "invalid layout."]` 一致 ✓
-- RESPONSE_HEADER case3(row148): `errorMode:timeout` → YAML `["errorMode:timeout", "", ""]` 一致 ✓
 - SETUP_TABLE/EXPECTED_TABLE 各group(1-4): PROJECT_INS_REQ の全値が testNormalEnd と同一構造で一致（EXPECTED STATUS=`2`）✓
 
-差異なし。数値→`"n.0"` および `"0"`→`"0"` 等はコンバータ/NTF(POI) が数値セルを double として読む忠実な表現であり defect ではない（web/batch と同じ扱い）。
+数値→`"n.0"` および `"0"`→`"0"` 等はコンバータ/NTF(POI) が数値セルを double として読む忠実な表現であり defect ではない（web/batch と同じ扱い）。
+
+### 【差異あり — 要ユーザー判断・修正せず停止】
+
+QAレビュー（および再検証）により、以下の **Excel↔YAML データ差異** を検出した。再検証は削除済み Excel を `git show ea87965:...xlsx` で取り出して実施。
+
+- `RESPONSE_HEADER_MESSAGES[case3]` データ行(Excel row148): Excel = リクエストID=`errorMode:timeout`, **再送要求フラグ=`0`**, 予備領域=空。
+  - YAML(testAbnormalEnd.yaml) = `["errorMode:timeout", "", ""]` ← 2番目が `0` ではなく `""`（**再送要求フラグ `0` が欠落**）
+- `RESPONSE_HEADER_MESSAGES[case4]` データ行(Excel row203): Excel = リクエストID=`errorMode:msgException`, **再送要求フラグ=`0`**, 予備領域=空。
+  - YAML = `["errorMode:msgException", "", ""]` ← 同様に **再送要求フラグ `0` が欠落**
+
+対照: `EXPECTED_REQUEST_HEADER_MESSAGES` の同じ C列=`0`（row56/112/167/222）は YAML で正しく `"0"` に変換されている。差異は RESPONSE_HEADER の case3/case4（リクエストID列が `errorMode:...` 指示値のケース）に限定して発生。
+
+※ 当初の self-check はリクエストID列のみを見て「一致」と誤記録していた（本セクションで訂正）。本差異はコンバータ側の挙動であり、**ルールに従い修正は行わずユーザーに報告して停止する**。
 
 ## QA Expert Review
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | | |
-| Edge case coverage | | |
+| Meaningful tests/verification | NG | 突合手法は妥当だが、当初 self-check が RESPONSE_HEADER case3/case4 の再送要求フラグ `0`→`""` 欠落を見落として「一致」と誤記録。再検証で差異を確定 |
+| Edge case coverage | NG | リクエストID列が `errorMode:...` 指示値のケースで再送要求フラグ`0`が欠落する差異が未検出だった。空シート・数値/文字列区別・ルビ・4異常ケース・各expectedLog 等のエッジはカバー良好 |
 
 ## Expert Reviews (code changes only)
 
@@ -50,6 +62,6 @@ N/A — no code changes in this task.
 
 ## Overall Verdict
 
-- Self-check: OK
-- QA: (pending)
-- Ready for user review: (pending)
+- Self-check: NG（当初OKは誤り。RESPONSE_HEADER case3/case4 の再送要求フラグ `0`→`""` 欠落あり）
+- QA: NG（差異あり）
+- Ready for user review: **停止（差異のため修正せず報告）**
