@@ -40,8 +40,8 @@ java.lang.IllegalArgumentException: couldn't find resource
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | (pending) | |
-| Edge case coverage | (pending) | |
+| Meaningful tests/verification | OK | Excelなしで `Tests run: 2, Failures: 0`/BUILD SUCCESS を独立再現。正常1＋異常4ショットの status/ログ/DB遷移(0→1,0→2)を YAML 駆動で検証。override が起動時・実行時の両経路で効くことをログ(L90/L219, L108/L247)で実証 |
+| Edge case coverage | OK | 異常系4系統（Validation失敗110/フォーマット解析失敗110/タイムアウト100/送受信エラー100）と errorMode:timeout・msgException のモック制御まで網羅。Excel残存0件で誤パス無し |
 
 ## Expert Reviews (code changes only)
 
@@ -49,20 +49,22 @@ java.lang.IllegalArgumentException: couldn't find resource
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Best practices | (pending) | |
-| Codebase style consistency | (pending) | |
-| GWT test format | (pending) | |
+| Best practices | OK | component-ref/dbInfo が import 順で解決可能なことを jar 実体まで追って確認。override は test-data.xml import より後で後勝ち成立。コメントも正確 |
+| Codebase style consistency | OK | 隣接 batch の yamlInterpreters/testDataParser と構造・インデント・コメント文言まで一致。boot への配置差は sync-send 固有要件に基づく正当差でコメント明記 |
+| GWT test format | N/A | XML設定変更のみ、テストコード変更なし |
 
 ### Software-engineering Expert
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Separation of concerns | (pending) | |
-| System integrity | (pending) | |
-| Maintainability | (pending) | |
+| Separation of concerns | OK | テスト設定は test リソース2ファイルに完結、本番 boot(src/main) 無汚染。YAML経路とExcel経路が override で明確分離 |
+| System integrity | OK | 全参照が import 順含め解決可能、override 成立。単一 testDataParser(YAML) がセットアップ/実行/検証＋再初期化後の応答電文モックまで全フェーズ一貫使用、欠落フェーズなし |
+| Maintainability | OK | boot 単一ソース化で重複排除、両ファイルに理由コメント明示で追跡可能 |
 
 ## Overall Verdict
 
 - Self-check: OK（修正コミット b31c3ba 後、BUILD SUCCESS）
-- QA / Language / Software-engineering: (pending)
-- Ready for user review: (pending)
+- QA: OK
+- Language expert: OK
+- Software-engineering expert: OK
+- Ready for user review: Yes

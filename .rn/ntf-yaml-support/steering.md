@@ -165,10 +165,10 @@ LANG=ja_JP.UTF-8 mvn test
 - [x] `mvn test` が BUILD SUCCESS になることを確認する（修正後: Tests run: 2, Failures: 0）
 - [x] テストログで YamlTestDataParser が実際に使われていることを確認する（起動時＋実行時再初期化の2回とも上書きログ出力）
 - [x] self-check (OK/NG per completion criterion, record in checks/task-5.md) — OK
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
-- [ ] language expert review (Agent: general-purpose / Opus 4.8)
-- [ ] software-engineering expert review (Agent: general-purpose / Opus 4.8)
-- [ ] user review
+- [x] QA expert review (Agent: general-purpose / Opus 4.8) — OK
+- [x] language expert review (Agent: general-purpose / Opus 4.8) — OK
+- [x] software-engineering expert review (Agent: general-purpose / Opus 4.8) — OK
+- [ ] user review — 全task完了後にまとめて実施（運用ルール）
 
 > ✅ **解決済み**: 当初 BUILD FAILURE（`couldn't find resource ...`）だったが、根本原因は「アクション起動 diConfig(messaging-sync-send-boot.xml) に YAML 上書きが無く実行時 testDataParser が Excel リーダーのまま」と確定（`reports/task-5-sendsync-resource-root-cause.md`）。修正コミット b31c3ba で boot 側に YAML 設定を集約し、Excelなしで全テストパス。失敗の経緯はレポート・check に温存。
 
@@ -184,7 +184,7 @@ LANG=ja_JP.UTF-8 mvn test
 
 # State
 
-- **Status**: in progress（②解消・全テストパス。残: #5の各エキスパートレビューとまとめ user review）
+- **Status**: ready for user review（全task完了・②解消・全テストパス・全エキスパートレビューOK。残: まとめ user review）
 - **Date**: 2026-10-06
 - **Last completed（レビューOK）**: #1（OK）, #2（QA/Lang/SW-eng OK、boot集約の修正 b31c3ba）, #3（①は挙動等価で許容）, #4（Excel削除・QA OK）, #5（BUILD SUCCESS）
 - **解消済み**: #5 BUILD FAILURE → boot側へYAML設定集約（b31c3ba）で全テストパス。#3差異①は実テストで挙動等価を確認し許容。
