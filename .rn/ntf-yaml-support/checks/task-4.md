@@ -4,8 +4,8 @@
 
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
-| 変換対象だった全Excelが削除されている | OK | `git rm SendProjectInsertMessageRequestTest.xlsx` 実行。`find src -iname '*.xls' -o -iname '*.xlsx'` の結果0件（残存Excel件数: 0） | | |
-| 削除がコミットされている | OK | Excel削除を単独コミット（YAMLは Task #3 で追加済み、本コミットは削除のみ） | | |
+| 変換対象だった全Excelが削除されている | OK | `git rm SendProjectInsertMessageRequestTest.xlsx` 実行。`find src -iname '*.xls' -o -iname '*.xlsx'` の結果0件（残存Excel件数: 0） | OK | `find src -iname '*.xls*'`・`git ls-files \| grep -iE '\.xlsx?$'`・リポジトリ全体 `find . -iname '*.xls*'` のいずれも0件を独立確認。対応YAML3件が削除で失われていないことも確認 |
+| 削除がコミットされている | OK | Excel削除を単独コミット（YAMLは Task #3 で追加済み、本コミットは削除のみ） | OK | 当該コミットの diff --stat が Excel削除＋.rnドキュメントのみで、コード/設定への破壊なし・ダングリング参照なしを確認 |
 
 （Excelなしでの `mvn clean test` 実行とその結果確認は Task #5 で行う。本タスクでは記載しない。）
 
