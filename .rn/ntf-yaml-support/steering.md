@@ -116,13 +116,13 @@ LANG=ja_JP.UTF-8 mvn test
 
 **Steps**:
 
-- [ ] 対象 Excel ファイルの所在を確認する
-- [ ] 同名の `.xls` と `.xlsx` が併存していないか確認する
-- [ ] README の手順に従い、全ての対象ExcelファイルをYAML変換する
-- [ ] 変換後、各YAMLファイルについてExcelの内容とサンプリングで比較し、一致を確認する（各ファイル最低3件。元データが3件未満の場合は元データ件数分）
-- [ ] サンプリング比較結果を `checks/task-3.md` に記録する（差異があれば原因を調査しユーザーに報告し、修正せずに止める）
-- [ ] 変換したYAMLファイルをコミットする（Excelはまだ削除しない）
-- [ ] self-check (OK/NG per completion criterion, record in checks/task-3.md)
+- [x] 対象 Excel ファイルの所在を確認する（`SendProjectInsertMessageRequestTest.xlsx` 1件）
+- [x] 同名の `.xls` と `.xlsx` が併存していないか確認する（併存なし）
+- [x] README の手順に従い、全ての対象ExcelファイルをYAML変換する（`convert` ゴール、Converted 1 file(s)）
+- [x] 変換後、各YAMLファイルについてExcelの内容とサンプリングで比較し、一致を確認する（各ファイル3件以上、差異なし）
+- [x] サンプリング比較結果を `checks/task-3.md` に記録する
+- [x] 変換したYAMLファイルをコミットする（Excelはまだ削除しない）
+- [x] self-check (OK/NG per completion criterion, record in checks/task-3.md)
 - [ ] QA expert review (Agent: general-purpose / Opus 4.8)
 - [ ] user review
 
