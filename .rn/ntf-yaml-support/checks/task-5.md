@@ -2,10 +2,12 @@
 
 ## Completion Criteria
 
+> **【解決済み】**（修正コミット `b31c3ba`）: 下記の根本原因②に対し、`messaging-sync-send-boot.xml` 側に `yamlInterpreters`＋`YamlTestDataParser` 上書きを集約（`unit-test.xml` の重複は削除）。再テストで BUILD SUCCESS。以下の表は修正後の結果。失敗の経緯と根本原因は記録として下部に温存する。
+
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
-| mvn test が BUILD SUCCESS（全テストパス、Excelなし） | **NG（BUILD FAILURE）** | `LANG=ja_JP.UTF-8 mvn clean test`: `Tests run: 2, Failures: 2, Errors: 0`。testNormalEnd / testAbnormalEnd がともに失敗（下記根本原因） | | |
-| テストログで YamlTestDataParser が使われている | OK | ログに `override component ... component name = testDataParser, ... override component definition classname = nablarch.test.core.reader.YamlTestDataParser` と `YamlTestDataParser does not use TestDataReader;` が出力。YAMLパーサは有効 | | |
+| mvn test が BUILD SUCCESS（全テストパス、Excelなし） | OK | `LANG=ja_JP.UTF-8 mvn clean test`: `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0` / `BUILD SUCCESS`（2026-10-06、修正コミット b31c3ba 後）。Excel不在（残存0件）で全パス | | |
+| テストログで YamlTestDataParser が使われている | OK | `testDataParser` 上書きログが2回出力（起動時のテストリポジトリ＋アクション実行時に diConfig で再初期化されたリポジトリ）。いずれも `override ... YamlTestDataParser` と `YamlTestDataParser does not use TestDataReader;`。実行時も YAML リーダーが使われていることを確認 | | |
 
 ## 失敗の根本原因（確定・修正せず停止）
 
@@ -38,15 +40,29 @@ java.lang.IllegalArgumentException: couldn't find resource
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | （停止） | BUILD FAILURE のため未実施 |
-| Edge case coverage | （停止） | 同上 |
+| Meaningful tests/verification | (pending) | |
+| Edge case coverage | (pending) | |
 
 ## Expert Reviews (code changes only)
 
-（停止）— テストコード変更なし。
+### Language Expert
+
+| Aspect | Verdict | Evidence / Improvement |
+|---|---|---|
+| Best practices | (pending) | |
+| Codebase style consistency | (pending) | |
+| GWT test format | (pending) | |
+
+### Software-engineering Expert
+
+| Aspect | Verdict | Evidence / Improvement |
+|---|---|---|
+| Separation of concerns | (pending) | |
+| System integrity | (pending) | |
+| Maintainability | (pending) | |
 
 ## Overall Verdict
 
-- Self-check: NG（BUILD FAILURE）
-- QA / Language / Software-engineering: 停止（未実施）
-- Ready for user review: **停止（テスト失敗のため修正せず報告）**
+- Self-check: OK（修正コミット b31c3ba 後、BUILD SUCCESS）
+- QA / Language / Software-engineering: (pending)
+- Ready for user review: (pending)

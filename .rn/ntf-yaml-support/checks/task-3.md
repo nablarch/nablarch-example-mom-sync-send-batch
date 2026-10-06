@@ -51,6 +51,8 @@ QAレビュー（および再検証）により、以下の **Excel↔YAML デ�
 
 **根本原因調査（別紙）**: `reports/task-3-response-header-diff-root-cause.md` 参照。結論＝NTF の `SendSyncMessageParser` が errorMode レコードはマーカー列のみ残し他列を破棄する**仕様どおりの挙動**（コンバータは実行時と同一パーサに委譲）。欠落した `0` は errorMode レコードでは元々未使用のデッドデータで、**挙動等価**（バイト値差であって意味差ではない）。
 
+**実テストによる最終確認（済）**: ②解消後（修正コミット b31c3ba）の `mvn clean test` で、case3/case4（errorMode:timeout / msgException）を含む testAbnormalEnd が **全パス（BUILD SUCCESS）**。再送要求フラグ `0` の欠落は挙動に影響しないことを実テストで裏付け。したがって本差異①は許容（defectではない）。
+
 ## QA Expert Review
 
 | Aspect | Verdict | Evidence / Improvement |
