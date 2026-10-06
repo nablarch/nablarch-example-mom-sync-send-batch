@@ -75,7 +75,7 @@ LANG=ja_JP.UTF-8 mvn test
 - [x] 結果を `checks/task-1.md` に記録する（self-check列のみ）
 - [x] 変更ファイル（check ファイルおよび更新した steering.md）をコミットする
 - [x] self-check (OK/NG per completion criterion, record in checks/task-1.md)
-- [ ] QA expert review (Agent: general-purpose / Opus 4.8)
+- [x] QA expert review (Agent: general-purpose / Opus 4.8)
 - [ ] user review
 
 **Completion criteria**:
