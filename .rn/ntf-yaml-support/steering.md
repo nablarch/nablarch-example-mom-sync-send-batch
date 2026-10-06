@@ -90,12 +90,12 @@ LANG=ja_JP.UTF-8 mvn test
 
 **Steps**:
 
-- [ ] `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test scope）を追加する
-- [ ] `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` をビルドプラグインとして追加する（`<configuration>` に from=xls / to=yaml / input / output / overwrite を設定）
-- [ ] `unit-test.xml` に `yamlInterpreters` リストと `YamlTestDataParser` コンポーネントを追加する（隣接プロジェクトを参考）
-- [ ] `mvn dependency:resolve` で yaml 依存が解決できること、`mvn help:describe` で converter プラグインの `convert` ゴールが解決できることを確認する
-- [ ] 変更したファイルをコミットする
-- [ ] self-check (OK/NG per completion criterion, record in checks/task-2.md)
+- [x] `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test scope）を追加する
+- [x] `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` をビルドプラグインとして追加する（`<configuration>` に from=xls / to=yaml / input / output / overwrite を設定）
+- [x] `unit-test.xml` に `yamlInterpreters` リストと `YamlTestDataParser` コンポーネントを追加する（隣接プロジェクトを参考）
+- [x] `mvn dependency:resolve` で yaml 依存が解決できること、`mvn help:describe` で converter プラグインの `convert` ゴールが解決できることを確認する
+- [x] 変更したファイルをコミットする
+- [x] self-check (OK/NG per completion criterion, record in checks/task-2.md)
 - [ ] QA expert review (Agent: general-purpose / Opus 4.8)
 - [ ] language expert review (Agent: general-purpose / Opus 4.8)
 - [ ] software-engineering expert review (Agent: general-purpose / Opus 4.8)
