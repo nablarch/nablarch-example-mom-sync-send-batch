@@ -46,6 +46,33 @@ java.lang.IllegalArgumentException: couldn't find resource
 
 NTF のリクエスト単体テストは、アクションを `-diConfig messaging-sync-send-boot.xml` 相当で起動する。このときアクション実行コンテキストのリポジトリは **messaging-sync-send-boot.xml 由来**であり、`unit-test.xml` でのみ行った `testDataParser` 上書きは**効かない**。
 
+### 確定した機序: 実行中はリポジトリが入れ替わる
+
+テストは `@BatchRequestTest` + `BatchRequestTestSupport.execute(sheetName)` でアクションを起動する。起動は `MainForRequestTesting`（`nablarch.fw.launcher.Main` 派生）が担い、ソース上以下のとおりリポジトリを **diConfig で再初期化し、実行後に戻す**:
+
+```java
+// MainForRequestTesting
+protected void setUpSystemRepository(String configFilePath) {
+    RepositoryInitializer.reInitializeRepository(configFilePath);   // configFilePath = diConfig = messaging-sync-send-boot.xml
+}
+public Integer handle(CommandLine cmd, ExecutionContext ctx) {
+    try { return super.handle(cmd, ctx); }
+    finally { RepositoryInitializer.revertDefaultRepository(); }     // 実行後に unit-test.xml 側へ復帰
+}
+// Main 本体(nablarch-fw-standalone): diConfig を読み
+//   SystemRepository.load(new DiContainer(new XmlComponentDefinitionLoader(diConfig)))  (L236-242)
+```
+
+ライフサイクル:
+
+| フェーズ | 有効なリポジトリ | `testDataParser` |
+|---|---|---|
+| セットアップ（testShots 等の読込） | `unit-test.xml` | YamlTestDataParser ✅ |
+| **アクション実行（sendSync のモック読込）** | **`messaging-sync-send-boot.xml` に再初期化** | **BasicTestDataParser（Excel）** ← 失敗箇所 |
+| 実行後の検証 | `unit-test.xml` に復帰 | YamlTestDataParser |
+
+すなわち、アクション実行中は **`unit-test.xml` は参照されない**。`unit-test.xml` だけに YAML 上書きを置いても、実行中のモック読込には効かない。
+
 ## 3. 失敗の連鎖（How）
 
 1. アクションが `MessageSender.sendSync` を実行。
