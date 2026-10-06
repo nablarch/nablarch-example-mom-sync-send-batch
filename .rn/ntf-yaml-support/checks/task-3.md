@@ -49,6 +49,8 @@ QAレビュー（および再検証）により、以下の **Excel↔YAML デ�
 
 ※ 当初の self-check はリクエストID列のみを見て「一致」と誤記録していた（本セクションで訂正）。本差異はコンバータ側の挙動であり、**ルールに従い修正は行わずユーザーに報告して停止する**。
 
+**根本原因調査（別紙）**: `reports/task-3-response-header-diff-root-cause.md` 参照。結論＝NTF の `SendSyncMessageParser` が errorMode レコードはマーカー列のみ残し他列を破棄する**仕様どおりの挙動**（コンバータは実行時と同一パーサに委譲）。欠落した `0` は errorMode レコードでは元々未使用のデッドデータで、**挙動等価**（バイト値差であって意味差ではない）。
+
 ## QA Expert Review
 
 | Aspect | Verdict | Evidence / Improvement |

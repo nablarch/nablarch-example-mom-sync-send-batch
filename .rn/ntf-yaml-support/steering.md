@@ -189,6 +189,6 @@ LANG=ja_JP.UTF-8 mvn test
 - **Last completed（レビューOK）**: #1（OK）, #2（QA/Lang/SW-eng OK）, #4（Excel削除・QA OK）
 - **Blocked at**: #3（サンプリング差異 NG）, #5（BUILD FAILURE）
 - **検出した2件の問題（いずれも修正せず報告）**:
-  1. **変換差異（#3）**: `RESPONSE_HEADER_MESSAGES` case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（リクエストID列が `errorMode:...` のケース）。EXPECTED_REQUEST_HEADER 側の同じ `0` は正常変換。
+  1. **変換差異（#3）**: `RESPONSE_HEADER_MESSAGES` case3/case4 の再送要求フラグ `0` が YAML で `""` に欠落（リクエストID列が `errorMode:...` のケース）。EXPECTED_REQUEST_HEADER 側の同じ `0` は正常変換。→ **根本原因調査完了**（`reports/task-3-response-header-diff-root-cause.md`）: NTF `SendSyncMessageParser` が errorMode レコードはマーカーのみ残す仕様どおりの挙動で、落ちた `0` は未使用のデッドデータ＝**挙動等価**（コンバータのバグではない）。
   2. **テスト失敗（#5）**: Excelなし `mvn clean test` が BUILD FAILURE。MOM同期送信の応答電文モックが YAML リソースを解決できない（`RequestTestingSendSyncSupport`→`TestSupport.getPathOf`→`YamlLoader.isResourceExisting` がディレクトリ `.../<メソッド>/` を要求するが、コンバータ出力は `.../<メソッド>.yaml` ファイル）。
 - **Notes**: 対象Excelは `SendProjectInsertMessageRequestTest.xlsx` の1件のみ（`.xls`併存なし）。削除済みExcelは `git show ea87965:...xlsx` で復元可能。web/batch では sync-send 応答電文モックを使わないため本問題は未発生。ブランチ ntf-yaml-support はコミット済み（未push）。
