@@ -140,10 +140,10 @@ LANG=ja_JP.UTF-8 mvn test
 
 **Steps**:
 
-- [ ] 変換対象となった Excel ファイルを削除する
-- [ ] 削除結果（残存Excelが0件であること）を `checks/task-4.md` に記録する
-- [ ] Excelファイル削除をコミットする
-- [ ] self-check (OK/NG per completion criterion, record in checks/task-4.md)
+- [x] 変換対象となった Excel ファイルを削除する
+- [x] 削除結果（残存Excelが0件であること）を `checks/task-4.md` に記録する
+- [x] Excelファイル削除をコミットする
+- [x] self-check (OK/NG per completion criterion, record in checks/task-4.md)
 - [ ] QA expert review (Agent: general-purpose / Opus 4.8)
 - [ ] user review
 
