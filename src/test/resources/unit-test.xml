@@ -9,19 +9,9 @@
   <!-- テスティングフレームワークの設定 -->
   <import file="nablarch/test/test-transaction.xml"/>
 
-  <!-- YAMLテストデータ用インタープリタ（QuotationTrimmerを除く） -->
-  <list name="yamlInterpreters">
-    <component-ref name="nullInterpreter"/>
-    <component-ref name="dateTimeInterpreter"/>
-    <component-ref name="lineSeparatorInterpreter"/>
-    <component-ref name="compositeInterpreter"/>
-  </list>
-
-  <!-- YamlTestDataParser でtestDataParserを上書き -->
-  <component name="testDataParser" class="nablarch.test.core.reader.YamlTestDataParser">
-    <property name="dbInfo" ref="dbInfo"/>
-    <property name="interpreters" ref="yamlInterpreters"/>
-  </component>
+  <!-- YAMLテストデータ対応（yamlInterpreters/YamlTestDataParser）は
+       import先の messaging-sync-send-boot.xml に定義。アクション実行時のリポジトリ再初期化でも
+       YAMLリーダーが有効になるよう、設定を同ファイルに集約している。 -->
 
   <!--
   マスタデータ復旧設定
