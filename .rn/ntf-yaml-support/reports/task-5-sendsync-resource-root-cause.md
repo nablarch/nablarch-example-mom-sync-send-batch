@@ -2,7 +2,7 @@
 
 - 対象: nablarch-example-mom-sync-send-batch / ブランチ `ntf-yaml-support`
 - 事象ID: ②（Task #5 BUILD FAILURE）
-- 調査日: 2026-10-06（2026-10-19 追記: §6 失敗ログの詳細、§7 nablarch-document の記載状況と改善案）
+- 調査日: 2026-10-06（2026-10-19 追記: §6 失敗ログの詳細、§7 nablarch-document の記載状況と改善案。§2〜§5 を書き直し）
 - 結論: **アクション起動用 diConfig（`messaging-sync-send-boot.xml`）に `YamlTestDataParser` 上書きが無く、実行時のメッセージングモックが既定の `BasicTestDataParser`（Excelリーダー）で応答電文を探すため。Excel 削除後は該当ブックが見つからず `couldn't find resource` となる。** YAML のファイル/ディレクトリ構造の問題ではない（初版の推測を訂正）。
 
 ---
@@ -22,97 +22,140 @@ java.lang.IllegalArgumentException: couldn't find resource
 
 一方、`YamlTestDataParser` 自体は有効化されている（起動ログに override と `YamlTestDataParser does not use TestDataReader;` が出力）。また **テストのセットアップ（testShots / setup / expectedLog の読み込み）は YAML から成功**している（例: ログに testAbnormalEnd.yaml の expectedLog1 `メッセージ受信側でValidationエラーが発生しました。` を読み込んだ記録あり）。失敗するのは **アクション実行中にモックが応答電文を取得する箇所のみ**。
 
-## 2. 2つのリポジトリ（Where）— ここが核心
+## 2. 原因 — テストは 2 つの設定ファイルを切り替えて動く
 
-本テストは **2つの異なる DI リポジトリ** を使い分けている。
+### 2.1 要点
 
-| フェーズ | 使用設定 | `testDataParser` の実体 |
-|---|---|---|
-| テストのセットアップ／検証 | `unit-test.xml` | **YamlTestDataParser**（本移行で上書き追加） |
-| アクション本体の実行 | `messaging-sync-send-boot.xml`（testShots の `diConfig`） | **BasicTestDataParser**（＝Excelリーダー。上書きなし） |
+- このテストでは、**アクションを実行している間だけ、`unit-test.xml` ではなく `messaging-sync-send-boot.xml`（テストショットの `diConfig`）の設定が使われる。**
+- YAML 移行では、テストデータを読むコンポーネント `testDataParser` を `YamlTestDataParser` に置き換える設定を、**`unit-test.xml` にだけ**書いていた。
+- そのため、アクションの実行中は `testDataParser` が既定の `BasicTestDataParser`（Excel 用）に戻っていた。その間に同期送信のモックが応答電文を読もうとして、削除済みの Excel を探し、失敗した。
 
-根拠（本リポジトリの実ファイル）:
+### 2.2 フェーズごとに使われる設定ファイル
 
-- `src/test/resources/unit-test.xml`
-  - L7: `<import file="messaging-sync-send-boot.xml"/>`
-  - L13-18: `yamlInterpreters` リスト追加（本移行）
-  - L20-24: `<component name="testDataParser" class="nablarch.test.core.reader.YamlTestDataParser">`（本移行の上書き）
-- `src/test/resources/messaging-sync-send-boot.xml`（＝アクション起動用 diConfig）
-  - L13-14: `<component name="defaultMessagingProvider" class="nablarch.test.core.messaging.RequestTestingMessagingProvider"/>`（応答電文モック）
-  - L17: `<import file="nablarch/test/test-data.xml"/>` → この中で `testDataParser` が **BasicTestDataParser** として定義される
-  - **`YamlTestDataParser` 上書きも `yamlInterpreters` も無い**
-- `src/test/java/.../SendProjectInsertMessageRequestTest/testNormalEnd.yaml` 他
-  - testShots の `diConfig: "messaging-sync-send-boot.xml"` … アクションはこの config で起動される
+| フェーズ | 主な処理 | 使われる設定ファイル | `testDataParser`（修正前） |
+|---|---|---|---|
+| ① テストの準備 | テストショット一覧・準備データ・期待ログの読み込み | `unit-test.xml` | `YamlTestDataParser` ✅ |
+| ② **アクションの実行** | 業務アクションの実行。**同期送信モックによる応答電文の読み込み** | **`messaging-sync-send-boot.xml`（`diConfig`）で作り直したリポジトリ** | **`BasicTestDataParser`（Excel 用）** ❌ |
+| ③ 実行後の検証 | ステータスコード・テーブル・ログ・要求電文の検証 | `unit-test.xml`（②の後に戻る） | `YamlTestDataParser` ✅ |
 
-NTF のリクエスト単体テストは、アクションを `-diConfig messaging-sync-send-boot.xml` 相当で起動する。このときアクション実行コンテキストのリポジトリは **messaging-sync-send-boot.xml 由来**であり、`unit-test.xml` でのみ行った `testDataParser` 上書きは**効かない**。
+①と③が成功し、②だけが失敗した理由がこの表で説明できる。
 
-### 確定した機序: 実行中はリポジトリが入れ替わる
+### 2.3 リポジトリが切り替わる仕組み（ソースで確認）
 
-テストは `@BatchRequestTest` + `BatchRequestTestSupport.execute(sheetName)` でアクションを起動する。起動は `MainForRequestTesting`（`nablarch.fw.launcher.Main` 派生）が担い、ソース上以下のとおりリポジトリを **diConfig で再初期化し、実行後に戻す**:
+テストクラスは `@BatchRequestTest` と `BatchRequestTestSupport.execute(シート名)` でアクションを起動する。起動は `MainForRequestTesting`（`nablarch.fw.launcher.Main` のサブクラス）が行う。`MainForRequestTesting` は、実行の直前に `diConfig` でリポジトリを作り直し、実行後に元のリポジトリへ戻す。
 
 ```java
-// MainForRequestTesting
+// nablarch.test.core.standalone.MainForRequestTesting
 protected void setUpSystemRepository(String configFilePath) {
-    RepositoryInitializer.reInitializeRepository(configFilePath);   // configFilePath = diConfig = messaging-sync-send-boot.xml
+    // configFilePath は diConfig（= messaging-sync-send-boot.xml）
+    RepositoryInitializer.reInitializeRepository(configFilePath);
 }
 public Integer handle(CommandLine cmd, ExecutionContext ctx) {
-    try { return super.handle(cmd, ctx); }
-    finally { RepositoryInitializer.revertDefaultRepository(); }     // 実行後に unit-test.xml 側へ復帰
+    try {
+        return super.handle(cmd, ctx);                 // ここでアクションが動く（②）
+    } finally {
+        RepositoryInitializer.revertDefaultRepository(); // unit-test.xml のリポジトリへ戻す（③へ）
+    }
 }
-// Main 本体(nablarch-fw-standalone): diConfig を読み
-//   SystemRepository.load(new DiContainer(new XmlComponentDefinitionLoader(diConfig)))  (L236-242)
 ```
 
-ライフサイクル:
+### 2.4 修正前の設定ファイルの状態
 
-| フェーズ | 有効なリポジトリ | `testDataParser` |
+| ファイル | 役割 | YAML 関連の設定（修正前） |
 |---|---|---|
-| セットアップ（testShots 等の読込） | `unit-test.xml` | YamlTestDataParser ✅ |
-| **アクション実行（sendSync のモック読込）** | **`messaging-sync-send-boot.xml` に再初期化** | **BasicTestDataParser（Excel）** ← 失敗箇所 |
-| 実行後の検証 | `unit-test.xml` に復帰 | YamlTestDataParser |
+| `src/test/resources/unit-test.xml` | テスト用の設定。①③で使われる | `messaging-sync-send-boot.xml` を import したうえで、`yamlInterpreters` と `testDataParser`（`YamlTestDataParser`）の上書きを定義 ✅ |
+| `src/test/resources/messaging-sync-send-boot.xml` | アクション起動用の設定（`diConfig`）。②で使われる | `defaultMessagingProvider` を `RequestTestingMessagingProvider`（モック）に差し替え、`nablarch/test/test-data.xml` を import。**`test-data.xml` が定義する `testDataParser`（`BasicTestDataParser`）がそのまま使われ、YAML への上書きは無い** ❌ |
+| `SendProjectInsertMessageRequestTest/testNormalEnd.yaml` ほか | テストデータ | testShots の `diConfig: "messaging-sync-send-boot.xml"` で②の設定ファイルを指定 |
 
-すなわち、アクション実行中は **`unit-test.xml` は参照されない**。`unit-test.xml` だけに YAML 上書きを置いても、実行中のモック読込には効かない。
+`unit-test.xml` は `messaging-sync-send-boot.xml` を import しているが、逆方向（`messaging-sync-send-boot.xml` が `unit-test.xml` を読む）の関係は無い。そのため、`unit-test.xml` に書いた上書きは②には効かない。
 
-## 3. 失敗の連鎖（How）
+## 3. 失敗するまでの流れ
 
-1. アクションが `MessageSender.sendSync` を実行。
-2. モック `RequestTestingMessagingProvider$RequestTestingMessagingContext.createReceivedMessage` が応答電文を用意するため
-   `new RequestTestingSendSyncSupport(testClass).getResponseMessage("testAbnormalEnd", ...)` を呼ぶ。
-3. `RequestTestingSendSyncSupport.getMessages`:
+### 3.1 処理の流れ
+
+1. 業務アクション `SendProjectInsertMessageAction`（L64）が `MessageSender.sendSync` で同期送信する。
+2. ②のリポジトリでは送信先がモック `RequestTestingMessagingProvider` に差し替わっている。モックは実際には送信せず、`RequestTestingMessagingContext.createReceivedMessage` で応答電文をテストデータから用意する。そのために `new RequestTestingSendSyncSupport(テストクラス).getResponseMessage("testAbnormalEnd", ...)` を呼ぶ。
+3. `RequestTestingSendSyncSupport.getMessages` は、まず応答電文のテストデータがある場所を調べる。
    ```java
-   String resourceName = support.getResourceName("testAbnormalEnd");  // = "SendProjectInsertMessageRequestTest/testAbnormalEnd"
-   String path = support.getPathOf(resourceName);                      // ← ここで例外
+   String resourceName = support.getResourceName("testAbnormalEnd"); // "SendProjectInsertMessageRequestTest/testAbnormalEnd"
+   String path = support.getPathOf(resourceName);                     // ← ここで例外
    ```
-4. `TestSupport.getPathOf` → `getPathResourceExisting` → `getTestDataParser().isResourceExisting(basePath, resourceName)`。
-   - このとき `getTestDataParser()` は **実行時リポジトリ**（messaging-sync-send-boot.xml）の `testDataParser` ＝ **BasicTestDataParser** を返す。
-   - `BasicTestDataParser.isResourceExisting` → `PoiXlsReader.isResourceExisting`：basePath 配下に `SendProjectInsertMessageRequestTest.xls` / `.xlsx` が存在するかを探す。
-   - **Excel は Task #4 で削除済み → 見つからず false。**
-5. 全候補パスで false → `getPathResourceExisting` が null → `getPathOf` が
-   `couldn't find resource [SendProjectInsertMessageRequestTest/testAbnormalEnd]` を送出。
-6. 例外によりアクションが異常終了（status 20）。期待値（0 / 110）と不一致、期待 FATAL ログも未出力でテスト失敗。
+4. `TestSupport.getPathOf` は、読み込み先の候補（`nablarch.test.resource-root` にテストクラスのパッケージ階層を付けたもの。ここでは `src/test/java/com/nablarch/example`）ごとに、`getTestDataParser().isResourceExisting(basePath, resourceName)` でテストデータの有無を判定する。
+   - `getTestDataParser()` は `SystemRepository.get("testDataParser")`、つまり**その時点のリポジトリ**から取得する。②の間は `BasicTestDataParser` が返る。
+   - `BasicTestDataParser.isResourceExisting` は `PoiXlsReader.isResourceExisting` を使い、`SendProjectInsertMessageRequestTest.xls` / `.xlsx` があるかを調べる。
+   - Excel は Task #4 で削除済みなので false になる。
+5. どの候補でも見つからないので、`getPathOf` が `IllegalArgumentException: couldn't find resource [SendProjectInsertMessageRequestTest/testAbnormalEnd] in [src/test/java/com/nablarch/example]` を送出する。
+6. 例外は業務アクションの中で起きるので、業務トランザクションはロールバックされる。`PROJECT_INS_REQ.STATUS` は異常終了の `2` に更新され、プロセスはステータスコード 20（予期しない例外）で終了する。
+7. ③の検証で、期待値（testNormalEnd：ステータスコード 0・STATUS=1、testAbnormalEnd：ステータスコード 110・FATAL ログ）と一致せず、2 件とも失敗する。
 
-### Task #1（Excel あり）で成功していた理由
-Excel 存在時は、同じ BasicTestDataParser（PoiXlsReader）が `SendProjectInsertMessageRequestTest.xlsx` を発見し、シート `testAbnormalEnd` から応答電文を読めていた。モックが Excel リーダーを使う構造自体は従来どおりで、Excel があれば動く。
+テスト結果（surefire）には 7 の二次的な症状しか出ない。原因の例外（5）はログの Stack Trace にだけ出る（§6.3〜6.6）。
 
-### web / batch Example で顕在化しなかった理由
-web / batch は、テスト対象アクションを別 diConfig で起動し **その実行中にメッセージングモックがテストデータを再読込する**という経路を持たない。`testDataParser` を使うのはテスト側リポジトリ（unit-test.xml＝YAML 上書き済み）だけなので、上書き不足が表に出なかった。本 Example（MOM 同期送信）は、モックが実行時に応答電文を読むため、アクション起動 config 側の `testDataParser` 実体が問題になる。
+### 3.2 YAML 用パーサが使われていれば成功していた理由
 
-## 4. 初版レポートの訂正
+- 判定（4）が `YamlTestDataParser.isResourceExisting`（`YamlLoader.isResourceExisting`）なら、`src/test/java/com/nablarch/example/SendProjectInsertMessageRequestTest/` ディレクトリを探すので、見つかる（§4）。
+- 続く応答電文の読み込みは、`RequestTestingSendSyncSupport` が `testDataParser` を `BasicTestDataParser` にキャストして `getSendSyncMessage` を呼ぶ。`YamlTestDataParser` は `BasicTestDataParser` のサブクラスで `getSendSyncMessage` を YAML 用に実装しているので、キャストも読み込みも問題ない（修正後のテスト成功で確認済み）。
 
-本調査の初版（checks/task-5.md）では「`YamlLoader.isResourceExisting` がディレクトリ（`File.isDirectory()`）を要求し、コンバータがファイルを出力するため不整合」と推定した。これは **誤り**。実測では、プロジェクトルートを CWD として
-`YamlLoader.isResourceExisting("src/test/java/com/nablarch/example", "SendProjectInsertMessageRequestTest/testAbnormalEnd")`
-は **true** を返す（`buildContainerPath` は末尾セグメントを除いた `.../SendProjectInsertMessageRequestTest` を対象とし、これは実在するディレクトリ）。
-したがって `YamlTestDataParser` が使われていれば解決は成功する。失敗の真因は §2・§3 のとおり **実行時リポジトリの `testDataParser` が Excel リーダーのまま**である点。
+### 3.3 Excel があったころ（Task #1）に成功していた理由
 
-（検証: 実 jar の `YamlLoader.isResourceExisting` をリフレクションで直接呼び出し true を確認。テスト実行時のみ false になるのは、実行時リポジトリの parser が BasicTestDataParser だからという整合的な説明が付く。）
+- 仕組みは昔から同じで、②では `BasicTestDataParser` が使われていた。
+- Excel があったので、`BasicTestDataParser` が `SendProjectInsertMessageRequestTest.xlsx` を見つけ、シート `testAbnormalEnd` から応答電文を読めていた。
+- Excel を削除して初めて、②だけ Excel 用パーサが使われていることが表に出た。
 
-## 5. 影響と実施した対応（解決済み）
+### 3.4 web / batch の Example で問題が出なかった理由
 
-- 本件は **設定の不足**（アクション起動 config に YAML 対応が無い）に起因し、コンバータ出力や YAML 構造の問題ではない。
-- **実施した対応（コミット `b31c3ba`）**:
-  1. **`src/test/resources/messaging-sync-send-boot.xml` に** `yamlInterpreters` と `YamlTestDataParser` の `testDataParser` 上書きを追加（アクション実行時リポジトリでも YAML リーダーを使う）。`unit-test.xml` は同ファイルを import するため、重複定義は削除して**単一ソース化**。本 Example（MOM同期送信）固有の、アクション起動 config への反映。
-  2. 再テスト `mvn clean test` → **BUILD SUCCESS（Tests run: 2, Failures: 0）**。`YamlTestDataParser.getSendSyncMessage` による応答電文の YAML 読込も含め、起動時・実行時の両経路で YAML リーダーが使われることをログで確認。
-- 残る errorMode 列の差（①）は、この再テスト全パスにより挙動非影響であることを確認済み（defect ではない）。
+- web / batch のテストには、アクションの実行中（②）にテストデータを読む処理が無い。`testDataParser` を使うのは①③だけなので、`unit-test.xml` の上書きだけで足りた。
+- 移行手順・テンプレートはこれらの Example を参考に作ったため、「`unit-test.xml` に書けばよい」という前提になっていた。
+- ②でテストデータを読むのは、同期送信のモック（MOM の `RequestTestingMessagingProvider`、HTTP の `RequestTestingMessagingClient`）を使うテストである。全 Example のうち該当するのは本 Example と http-messaging-send の 2 つで、http-messaging-send でも同じ対応をした。mom-delayed-send もモックを使うが非同期送信で、応答電文を読まないため影響しない。
+
+## 4. 最初の推定（初版）の訂正
+
+- 初版（`checks/task-5.md`）では、「`YamlLoader.isResourceExisting` はディレクトリ（`File.isDirectory()`）を要求するが、コンバーターはファイルを出力するので一致しない」と推定した。**これは誤り。**
+- `YamlLoader.isResourceExisting` は、リソース名の最後の要素（シート名）を除いた `.../SendProjectInsertMessageRequestTest` をディレクトリとして探す（`buildContainerPath`）。このディレクトリは実在する。
+- 実際に、プロジェクトのルートをカレントディレクトリにして、実 jar の `YamlLoader.isResourceExisting("src/test/java/com/nablarch/example", "SendProjectInsertMessageRequestTest/testAbnormalEnd")` をリフレクションで呼ぶと **true** が返った。
+- つまり、**YAML のファイル構成やコンバーターの出力には問題が無い**。単体で呼べば true なのにテスト中だけ見つからないのは、テスト中（②）には YAML 用パーサがそもそも使われていないから、と説明がつく（§2・§3）。
+
+## 5. 対応内容（解決済み）
+
+### 5.1 修正（コミット `b31c3ba`、2026-10-06）
+
+| ファイル | 変更内容 |
+|---|---|
+| `src/test/resources/messaging-sync-send-boot.xml` | `yamlInterpreters` のリストと、`testDataParser` を `YamlTestDataParser` に置き換える定義（`dbInfo`・`interpreters` を指定）を追加。追加位置は `nablarch/test/test-data.xml` の import と `dbInfo` の定義の後なので、既定の `BasicTestDataParser` を上書きする |
+| `src/test/resources/unit-test.xml` | 同じ定義（`yamlInterpreters`・`testDataParser`）を削除し、設定は `messaging-sync-send-boot.xml` にある旨のコメントを残した |
+
+追加した定義（修正時点）:
+
+```xml
+<!-- messaging-sync-send-boot.xml -->
+<list name="yamlInterpreters">
+  <component-ref name="nullInterpreter"/>
+  <component-ref name="dateTimeInterpreter"/>
+  <component-ref name="lineSeparatorInterpreter"/>
+  <component-ref name="compositeInterpreter"/>
+</list>
+
+<component name="testDataParser" class="nablarch.test.core.reader.YamlTestDataParser">
+  <property name="dbInfo" ref="dbInfo"/>
+  <property name="interpreters" ref="yamlInterpreters"/>
+</component>
+```
+
+### 5.2 設定を 1 か所にまとめた理由
+
+- `unit-test.xml` は `messaging-sync-send-boot.xml` を import している。`messaging-sync-send-boot.xml` に書けば、①③（`unit-test.xml` 経由）と②（`diConfig` として直接）の**すべてのフェーズ**で `YamlTestDataParser` が使われる。
+- 両方に書くと、片方だけ直して食い違うおそれがある。1 か所にまとめれば、その心配が無い。
+- `dbInfo` は、もともと `messaging-sync-send-boot.xml` に定義されているので、②でも参照できる。
+
+### 5.3 確認結果
+
+- Excel が無い状態で `LANG=ja_JP.UTF-8 mvn clean test` を実行し、**BUILD SUCCESS（Tests run: 2, Failures: 0, Errors: 0）**。
+- ログで、②のリポジトリ再初期化でも `testDataParser` が `YamlTestDataParser` に置き換わることと、応答電文が `YamlTestDataParser.getSendSyncMessage` で YAML から読まれることを確認した。
+- 別事象①（errorMode 行の `0` が消える）も、このテスト成功により挙動に影響しないことを確認した（不具合ではない）。
+
+### 5.4 残っている点・他への影響
+
+- `yamlInterpreters` に `nullInterpreter`・`lineSeparatorInterpreter` が残っている。YAML では指定しないのが正しい（nablarch-document の `setup/testdata.rst` 参照）。これは別事象 #5 で対応し、本件では変更しない（§7.3）。
+- 同期送信のモックを使う他のプロジェクトでも、YAML に移行するときは **`diConfig` の設定ファイルにも `YamlTestDataParser` の置き換えを書く**必要がある。`unit-test.xml` がそのファイルを import していれば、`diConfig` 側の 1 か所に書けば足りる。移行手順書とドキュメントへの反映は §7 にまとめた。
 
 ## 6. 失敗ログの詳細（修正前の再現ログ）
 
