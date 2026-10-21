@@ -1,0 +1,124 @@
+# nablarch-example-mom-sync-send-batch NTF YAML 対応 steering
+
+## Overview
+- 目的・背景: NTF（Nablarch Testing Framework）のAI対応として、AIが読み書きできないバイナリ形式のExcelテストデータをYAML形式に移行する（背景資料: https://github.com/Fintan-contents/nablarch-system-development-guide/pull/211）。
+  - `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test 依存）と `nablarch-testing-converter:1.0.0-SNAPSHOT`（`<build><plugins>` のビルドプラグイン）を追加する
+  - `YamlTestDataParser`（`testDataParser`）を、`testDataParser` が参照される全フェーズで有効になる設定ファイルに追加する（`interpreters` は `dateTimeInterpreter` → `compositeInterpreter` の2つのみ）
+  - 全テスト用ExcelをYAMLへ変換し（サンプリング比較で一致確認）、Excelを削除したうえで全テストがパスする
+  - 既存 `ntf-yaml-support` ブランチの履歴（過去の移行コミット）を維持し、その上に develop 一致のベースラインコミット → task-1〜5 を積み上げて**再実施**する
+- 対象プロジェクト名: nablarch-example-mom-sync-send-batch
+- 対象Excel（develop 時点）: `src/test/java/com/nablarch/example/SendProjectInsertMessageRequestTest.xlsx`（1件）
+- 指示書: `.rn/ntf-yaml-support/ntf-yaml-support-instructions_mom-sync-send-batch_V1.6.md`（原本: `/home/k10949/instructions/ntf-yaml-support-instructions_mom-sync-send-batch_V1.6.md`）
+
+## Build / Test
+README（「実行手順」節）と `pom.xml` を確認した結果:
+- `gsp` プロファイルは存在しない。`gsp-dba-maven-plugin` の `generate-ddl` / `execute-ddl` / `load-data` が `generate-sources` フェーズにバインドされており、`mvn generate-resources`（`mvn package` にも含まれる）でDBセットアップが行われる。エンティティは `build-helper-maven-plugin` で `target/generated-sources/entity` をソース追加する構成。
+- NTF のメッセージ解決に日本語ロケールが必要なため、`LANG=ja_JP.UTF-8` を指定して実行する。
+- 手順:
+  ```
+  LANG=ja_JP.UTF-8 mvn -B clean generate-resources
+  LANG=ja_JP.UTF-8 mvn -B test
+  ```
+- テストは組込み artemis-server で完結し、MOM 受信側 Example の起動は不要。
+
+## Scripts
+- `.rn/ntf-yaml-support/scripts/xlsx_dump.py`: Task #3 のサンプリング比較用。外部ライブラリなしで `.xlsx` の各シートのセル値（行・列・値・型）をダンプし、変換後 YAML と比較するために使う（使い方: `python3 xlsx_dump.py <xlsx> [sheet]`）。
+
+## Tasks
+
+### #1: ベースライン化（developと同一状態）し、全PASSを確認する
+**Purpose**: 既存の `ntf-yaml-support` ブランチ（履歴維持）の先端の上に、ワーキングツリー全体を `develop` と同一内容へ揃えるコミットを1つ新規に積み、その状態で全テストがパスすることを確認する。
+**Prerequisites**: none
+**Steps**:
+- [x] 既存の `ntf-yaml-support` ブランチで作業する（新規作成なし。先端 `12967ec`）
+- [x] 過去の移行コミットを巻き戻さず、先端の上に処理を積む
+- [x] `git read-tree -u --reset develop` → `git commit` でベースラインコミット `1188802` を作成（`git diff HEAD develop` 差分なし）
+- [x] README を確認し、ビルド・テスト手順を把握する
+- [x] steering.md と scripts の初版を作成する
+- [x] 本指示書を `.rn/ntf-yaml-support/` 配下へコピーし、`cmp` で原本と同一であることを確認する
+- [x] `LANG=ja_JP.UTF-8 mvn -B clean generate-resources`（BUILD SUCCESS）
+- [x] `LANG=ja_JP.UTF-8 mvn -B test`（Tests run: 2, Failures: 0, Errors: 0, BUILD SUCCESS）
+- [x] 結果を `checks/task-1.md` に記録する
+- [x] 変更ファイルをコミットする
+- [x] self-check
+- [ ] QA expert review (Agent: general-purpose / Opus)
+- [ ] user review（全task完了後にまとめて実施）
+**Completion criteria**:
+- 既存の `ntf-yaml-support` ブランチ上で作業しており、コミット履歴が維持されている
+- ブランチの既存先端の上に、ワーキングツリー全体が `develop` と同一内容になる新規コミットが1つ積まれている
+- `mvn test` が全テストパスで終了している（BUILD SUCCESS）
+- 本指示書のコピーが `.rn/ntf-yaml-support/` 配下に原本と同一内容で配置され、コミットされている
+
+### #2: 設定変更 — pom.xml と unit-test.xml にYAML対応を追加
+**Purpose**: `pom.xml` に `nablarch-testing-yaml`（test 依存）と `nablarch-testing-converter`（ビルドプラグイン）を追加し、`YamlTestDataParser` を `testDataParser` が参照される全フェーズで有効になる設定ファイルに追加する。
+**Prerequisites**: #1
+**Steps**:
+- [ ] `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test scope）を追加する
+- [ ] `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` を追加する（from=xls / to=yaml / input / output / overwrite。batch 準拠）
+- [ ] 同期送信系（応答電文を持つ）テストかを判定する
+- [ ] 判定結果に応じて `YamlTestDataParser` を配置する
+- [ ] `mvn dependency:resolve` / `mvn help:describe` で依存・プラグインの解決を確認する
+- [ ] 変更したファイルをコミットする
+- [ ] self-check
+- [ ] QA expert review (Agent: general-purpose / Opus)
+- [ ] language expert review (Agent: general-purpose / Opus)
+- [ ] software-engineering expert review (Agent: general-purpose / Opus)
+- [ ] user review（全task完了後にまとめて実施）
+**Completion criteria**:
+- `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT` が test スコープで追加されている
+- `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` がビルドプラグインとして追加されている
+- `YamlTestDataParser` が全フェーズで有効になる設定ファイルに追加され、`interpreters` が `dateTimeInterpreter` → `compositeInterpreter` の2つのみ
+- `mvn dependency:resolve` が成功し、converter の `convert` ゴールが `mvn help:describe` で解決できる
+
+### #3: ExcelテストデータをYAMLに変換
+**Purpose**: `nablarch-testing-converter` で Excel テストデータを YAML に変換してソースツリーに配置し、サンプリングで内容を確認する。
+**Prerequisites**: #2
+**Steps**:
+- [ ] 対象 Excel ファイルの所在を確認する
+- [ ] 同名の `.xls` / `.xlsx` 併存を確認する
+- [ ] converter README の手順に従い YAML 変換する
+- [ ] 各 YAML ファイルについて Excel とサンプリング比較する（各ファイル最低3件）
+- [ ] 比較結果を `checks/task-3.md` に記録する
+- [ ] 変換した YAML ファイルをコミットする（Excelは削除しない）
+- [ ] self-check
+- [ ] QA expert review (Agent: general-purpose / Opus)
+- [ ] user review（全task完了後にまとめて実施）
+**Completion criteria**:
+- 変換対象の全 Excel に対応する YAML が生成されている
+- サンプリング比較で Excel と YAML の内容が一致している
+- 変換後の YAML がコミットされている
+
+### #4: Excelを削除する
+**Purpose**: 変換対象だった Excel を削除してコミットする。
+**Prerequisites**: #3
+**Steps**:
+- [ ] 変換対象となった Excel を削除する
+- [ ] 残存 Excel 0件を `checks/task-4.md` に記録する
+- [ ] 削除をコミットする
+- [ ] self-check
+- [ ] QA expert review (Agent: general-purpose / Opus)
+- [ ] user review（全task完了後にまとめて実施）
+**Completion criteria**:
+- 変換対象だった全 Excel ファイルが削除されている
+- 削除がコミットされている
+
+### #5: YAMLテストデータで全テストをパスさせる
+**Purpose**: Excelなしで全テストがパスすることを確認する。
+**Prerequisites**: #4
+**Steps**:
+- [ ] `mvn test` が BUILD SUCCESS になることを確認する
+- [ ] テストログで YamlTestDataParser が実際に使われていることを確認する
+- [ ] self-check
+- [ ] QA expert review (Agent: general-purpose / Opus)
+- [ ] language expert review (Agent: general-purpose / Opus)
+- [ ] software-engineering expert review (Agent: general-purpose / Opus)
+- [ ] user review（全task完了後にまとめて実施）
+**Completion criteria**:
+- `mvn test` が BUILD SUCCESS で終了する（全テストパス、Excel ファイルなし）
+- テストログで YamlTestDataParser が実際に使われていることが確認できる
+
+## State
+- Status: #1 実施中
+- Notes:
+  - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
+  - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
