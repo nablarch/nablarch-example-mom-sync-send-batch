@@ -1,14 +1,14 @@
 # task-3 Completion Check
 
-> ⛔ **停止中（ユーザー確認待ち）**: サンプリング比較で差異を検出したため、運用ルール（差異時は修正せず報告して停止）に従い作業を停止した。YAML は変換済みだが未コミット（作業ツリーに未追跡で存在）。QA expert review は未実施。
+> ℹ **経緯**: サンプリング比較で `RESPONSE_HEADER_MESSAGES[case3]/[case4]` の差異を検出し、運用ルールに従い修正せず報告・停止した。ユーザー判断により**差異を許容して続行**（errorMode レコードは先頭列のみ使用され挙動等価とする前回分析と同じ扱い）。YAML は変換結果を修正せずそのままコミットした。
 
 ## Completion Criteria
 
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
 | 変換対象の全てのExcelファイルに対応するYAMLファイルが生成されている | OK | 対象 Excel 1件（`SendProjectInsertMessageRequestTest.xlsx`、シート setUpDb / testNormalEnd / testAbnormalEnd）。`mvn -B com.nablarch.framework:nablarch-testing-converter:1.0.0-SNAPSHOT:convert` で「Converted 1 file(s).」BUILD SUCCESS。`SendProjectInsertMessageRequestTest/` 配下に `setUpDb.yaml`（0 byte。元シートが空）/ `testNormalEnd.yaml` / `testAbnormalEnd.yaml` を生成 | | |
-| サンプリング比較でExcelとYAMLの内容が一致している | NG | `testAbnormalEnd` の `RESPONSE_HEADER_MESSAGES[case3]` / `[case4]` で、再送要求フラグが Excel `'0'` に対し YAML `""`（下記 Sampling Comparison）。その他のサンプルは一致 | | |
-| 変換後のYAMLファイルがコミットされている | NG | 差異検出により停止したため未コミット | | |
+| サンプリング比較でExcelとYAMLの内容が一致している | OK（ユーザー許容） | `testAbnormalEnd` の `RESPONSE_HEADER_MESSAGES[case3]` / `[case4]` で再送要求フラグが Excel `'0'` に対し YAML `""`（下記 Sampling Comparison）。ユーザー判断で許容。その他のサンプルは一致 | | |
+| 変換後のYAMLファイルがコミットされている | OK | ユーザー許容後、YAML 3ファイルを無修正でコミット（task-3 YAML コミット） | | |
 
 ## Sampling Comparison（task-3 のみ）
 
@@ -31,7 +31,7 @@
 
 差異の所見（調査のみ・修正なし）:
 - 差異は先頭列が `errorMode:...` の `RESPONSE_HEADER_MESSAGES` レコード（case3 / case4）に限られる。同じ `0` を持つ `EXPECTED_REQUEST_HEADER_MESSAGES` は正しく `"0"` に変換されている。
-- 今回生成した YAML 3ファイルは、ブランチ履歴上の過去成果物（`12967ec` 時点）とバイト単位で同一（`cmp` 一致）。過去の作業では、NTF `SendSyncMessageParser` が errorMode レコードについてマーカー（先頭列）以外を保持しない仕様と分析し、挙動等価として許容した経緯がある（`git show 12967ec:.rn/ntf-yaml-support/reports/task-3-response-header-diff-root-cause.md`）。今回は指示書の運用ルールに従い、許容判断はせずユーザー判断を仰ぐ。
+- 今回生成した YAML 3ファイルは、ブランチ履歴上の過去成果物（`12967ec` 時点）とバイト単位で同一（`cmp` 一致）。過去の作業では、NTF `SendSyncMessageParser` が errorMode レコードについてマーカー（先頭列）以外を保持しない仕様と分析し、挙動等価として許容した経緯がある（`git show 12967ec:.rn/ntf-yaml-support/reports/task-3-response-header-diff-root-cause.md`）。指示書の運用ルールに従い報告・停止し、ユーザー判断で許容となった。
 
 ## .xls/.xlsx 併存チェック（該当時のみ）
 - 併存の有無: なし（`find` で `.xls` 0件、`.xlsx` 1件）
@@ -42,8 +42,8 @@
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | | 未実施（差異検出で停止） |
-| Edge case coverage | | 未実施（差異検出で停止） |
+| Meaningful tests/verification | | |
+| Edge case coverage | | |
 
 ## Expert Reviews (code changes only)
 
@@ -51,8 +51,8 @@ N/A — no code changes in this task.
 
 ## Overall Verdict
 
-- Self-check: NG（サンプリング比較で `RESPONSE_HEADER_MESSAGES[case3]/[case4]` の再送要求フラグ差異、YAML 未コミット）
-- QA: 未実施
+- Self-check: OK（`RESPONSE_HEADER_MESSAGES[case3]/[case4]` 再送要求フラグ差異はユーザー判断で許容）
+- QA:
 - Language expert: N/A
 - Software-engineering expert: N/A
-- Ready for user review: Yes（差異についてユーザー判断待ち）
+- Ready for user review:
