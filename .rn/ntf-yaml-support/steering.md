@@ -41,7 +41,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] 結果を `checks/task-1.md` に記録する
 - [x] 変更ファイルをコミットする
 - [x] self-check
-- [ ] QA expert review (Agent: general-purpose / Opus)
+- [x] QA expert review (Agent: general-purpose / Opus) — OK
 - [ ] user review（全task完了後にまとめて実施）
 **Completion criteria**:
 - 既存の `ntf-yaml-support` ブランチ上で作業しており、コミット履歴が維持されている
@@ -118,7 +118,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1 実施中
+- Status: #1 完了（Self-check/QA OK）、#2 実施中
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
