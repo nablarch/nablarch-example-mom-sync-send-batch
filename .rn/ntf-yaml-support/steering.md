@@ -50,7 +50,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] 変更ファイルをコミットする
 - [x] self-check
 - [x] QA expert review (Agent: general-purpose / Opus) — OK
-- [ ] user review（全task完了後にまとめて実施）
+- [x] user review（全task完了後にまとめて実施）— OK
 **Completion criteria**:
 - 既存の `ntf-yaml-support` ブランチ上で作業しており、コミット履歴が維持されている
 - ブランチの既存先端の上に、ワーキングツリー全体が `develop` と同一内容になる新規コミットが1つ積まれている
@@ -71,7 +71,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] QA expert review (Agent: general-purpose / Opus) — OK
 - [x] language expert review (Agent: general-purpose / Opus) — OK
 - [x] software-engineering expert review (Agent: general-purpose / Opus) — OK
-- [ ] user review（全task完了後にまとめて実施）
+- [x] user review（全task完了後にまとめて実施）— OK
 **Completion criteria**:
 - `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT` が test スコープで追加されている
 - `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` がビルドプラグインとして追加されている
@@ -90,7 +90,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] 変換した YAML ファイルをコミットする（Excelは削除しない）
 - [x] self-check
 - [x] QA expert review (Agent: general-purpose / Opus) — OK（全セル機械比較で既知差異以外なし）
-- [ ] user review（全task完了後にまとめて実施）
+- [x] user review（全task完了後にまとめて実施）— OK
 **Completion criteria**:
 - 変換対象の全 Excel に対応する YAML が生成されている
 - サンプリング比較で Excel と YAML の内容が一致している
@@ -105,7 +105,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] 削除をコミットする
 - [x] self-check
 - [x] QA expert review (Agent: general-purpose / Opus) — OK
-- [ ] user review（全task完了後にまとめて実施）
+- [x] user review（全task完了後にまとめて実施）— OK
 **Completion criteria**:
 - 変換対象だった全 Excel ファイルが削除されている
 - 削除がコミットされている
@@ -120,13 +120,13 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] QA expert review (Agent: general-purpose / Opus) — OK
 - [x] language expert review (Agent: general-purpose / Opus) — OK
 - [x] software-engineering expert review (Agent: general-purpose / Opus) — OK
-- [ ] user review（全task完了後にまとめて実施）
+- [x] user review（全task完了後にまとめて実施）— OK
 **Completion criteria**:
 - `mvn test` が BUILD SUCCESS で終了する（全テストパス、Excel ファイルなし）
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1〜#5 完了（全レビュー OK、#3 差異はユーザー許容）。まとめての user review 待ち。未 push
+- Status: #1〜#5 完了（全レビュー OK、#3 差異はユーザー許容）。まとめての user review OK。未 push（push はユーザーが実施）
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
