@@ -78,11 +78,11 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 **Purpose**: `nablarch-testing-converter` で Excel テストデータを YAML に変換してソースツリーに配置し、サンプリングで内容を確認する。
 **Prerequisites**: #2
 **Steps**:
-- [ ] 対象 Excel ファイルの所在を確認する
-- [ ] 同名の `.xls` / `.xlsx` 併存を確認する
-- [ ] converter README の手順に従い YAML 変換する
-- [ ] 各 YAML ファイルについて Excel とサンプリング比較する（各ファイル最低3件）
-- [ ] 比較結果を `checks/task-3.md` に記録する
+- [x] 対象 Excel ファイルの所在を確認する（`SendProjectInsertMessageRequestTest.xlsx` 1件）
+- [x] 同名の `.xls` / `.xlsx` 併存を確認する（併存なし）
+- [x] converter README の手順に従い YAML 変換する（Converted 1 file(s)、YAML 3ファイル）
+- [x] 各 YAML ファイルについて Excel とサンプリング比較する → **差異あり（NG）**: `testAbnormalEnd` の `RESPONSE_HEADER_MESSAGES[case3]/[case4]` 再送要求フラグ Excel `0` → YAML `""`
+- [x] 比較結果を `checks/task-3.md` に記録する
 - [ ] 変換した YAML ファイルをコミットする（Excelは削除しない）
 - [ ] self-check
 - [ ] QA expert review (Agent: general-purpose / Opus)
@@ -122,7 +122,8 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1・#2 完了（全レビュー OK）、#3 実施中
+- Status: ⛔ #3 で停止（サンプリング比較で差異検出。ユーザー判断待ち）。#1・#2 完了（全レビュー OK）
+  - 変換済み YAML は未コミット（作業ツリーに未追跡で存在）
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
