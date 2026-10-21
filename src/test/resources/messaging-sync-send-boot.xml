@@ -22,23 +22,6 @@
     <property name="schema" value="${nablarch.db.schema}"/>
   </component>
 
-  <!-- YAMLテストデータ用インタープリタ（QuotationTrimmerを除く） -->
-  <list name="yamlInterpreters">
-    <component-ref name="nullInterpreter"/>
-    <component-ref name="dateTimeInterpreter"/>
-    <component-ref name="lineSeparatorInterpreter"/>
-    <component-ref name="compositeInterpreter"/>
-  </list>
-
-  <!-- YamlTestDataParser でtestDataParserを上書き。
-       アクション実行時はこのdiConfigでリポジトリが再初期化され、同期送信の応答電文モックが
-       testDataParserでテストデータを読むため、ここでYAMLリーダーを有効化する必要がある。
-       unit-test.xml はこのファイルをimportするため、本定義でセットアップ/実行/検証の全フェーズに効く。 -->
-  <component name="testDataParser" class="nablarch.test.core.reader.YamlTestDataParser">
-    <property name="dbInfo" ref="dbInfo"/>
-    <property name="interpreters" ref="yamlInterpreters"/>
-  </component>
-
   <!-- 初期化が必要なコンポーネント -->
   <component name="initializer"
              class="nablarch.core.repository.initialization.BasicApplicationInitializer">

@@ -9,10 +9,6 @@
   <!-- テスティングフレームワークの設定 -->
   <import file="nablarch/test/test-transaction.xml"/>
 
-  <!-- YAMLテストデータ対応（yamlInterpreters/YamlTestDataParser）は
-       import先の messaging-sync-send-boot.xml に定義。アクション実行時のリポジトリ再初期化でも
-       YAMLリーダーが有効になるよう、設定を同ファイルに集約している。 -->
-
   <!--
   マスタデータ復旧設定
   マスタデータ復旧を使用する際には、いくつかの手順が必要になります。
