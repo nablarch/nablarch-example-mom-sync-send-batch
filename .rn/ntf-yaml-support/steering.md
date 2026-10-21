@@ -21,6 +21,10 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
   ```
 - テストは組込み artemis-server で完結し、MOM 受信側 Example の起動は不要。
 
+## Decisions
+- `YamlTestDataParser` は `src/test/resources/messaging-sync-send-boot.xml`（アクション起動 diConfig）に集約する。リクエスト単体テストは diConfig で `SystemRepository` を再初期化し、実行中に応答電文モックが `testDataParser` を参照するため。`unit-test.xml` は同ファイルを import しており、セットアップ/検証フェーズにも同じ定義が効く。本番用 `src/main/resources` には入れない。
+- converter は test 依存ではなく `<build><plugins>` のビルドプラグインとして宣言する（XLS→YAML 変換時のみ使用。nablarch-example-batch 準拠）。
+
 ## Scripts
 - `.rn/ntf-yaml-support/scripts/xlsx_dump.py`: Task #3 のサンプリング比較用。外部ライブラリなしで `.xlsx` の各シートのセル値（行・列・値・型）をダンプし、変換後 YAML と比較するために使う（使い方: `python3 xlsx_dump.py <xlsx> [sheet]`）。
 
@@ -53,13 +57,13 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 **Purpose**: `pom.xml` に `nablarch-testing-yaml`（test 依存）と `nablarch-testing-converter`（ビルドプラグイン）を追加し、`YamlTestDataParser` を `testDataParser` が参照される全フェーズで有効になる設定ファイルに追加する。
 **Prerequisites**: #1
 **Steps**:
-- [ ] `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test scope）を追加する
-- [ ] `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` を追加する（from=xls / to=yaml / input / output / overwrite。batch 準拠）
-- [ ] 同期送信系（応答電文を持つ）テストかを判定する
-- [ ] 判定結果に応じて `YamlTestDataParser` を配置する
-- [ ] `mvn dependency:resolve` / `mvn help:describe` で依存・プラグインの解決を確認する
-- [ ] 変更したファイルをコミットする
-- [ ] self-check
+- [x] `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT`（test scope）を追加する
+- [x] `pom.xml` の `<build><plugins>` に `nablarch-testing-converter:1.0.0-SNAPSHOT` を追加する（from=xls / to=yaml / input / output / overwrite。batch 準拠）
+- [x] 同期送信系（応答電文を持つ）テストかを判定する → 該当（diConfig=`messaging-sync-send-boot.xml`、`RESPONSE_*` あり）
+- [x] 判定結果に応じて `YamlTestDataParser` を配置する → `src/test/resources/messaging-sync-send-boot.xml` に集約（`unit-test.xml` が import しているため重複定義なし）
+- [x] `mvn dependency:resolve` / `mvn help:describe` で依存・プラグインの解決を確認する（いずれも rc=0、`convert` ゴール解決）
+- [x] 変更したファイルをコミットする
+- [x] self-check
 - [ ] QA expert review (Agent: general-purpose / Opus)
 - [ ] language expert review (Agent: general-purpose / Opus)
 - [ ] software-engineering expert review (Agent: general-purpose / Opus)
