@@ -6,9 +6,9 @@
 
 | Criterion | Self-check | Evidence | QA | QA Evidence |
 |---|---|---|---|---|
-| 変換対象の全てのExcelファイルに対応するYAMLファイルが生成されている | OK | 対象 Excel 1件（`SendProjectInsertMessageRequestTest.xlsx`、シート setUpDb / testNormalEnd / testAbnormalEnd）。`mvn -B com.nablarch.framework:nablarch-testing-converter:1.0.0-SNAPSHOT:convert` で「Converted 1 file(s).」BUILD SUCCESS。`SendProjectInsertMessageRequestTest/` 配下に `setUpDb.yaml`（0 byte。元シートが空）/ `testNormalEnd.yaml` / `testAbnormalEnd.yaml` を生成 | | |
-| サンプリング比較でExcelとYAMLの内容が一致している | OK（ユーザー許容） | `testAbnormalEnd` の `RESPONSE_HEADER_MESSAGES[case3]` / `[case4]` で再送要求フラグが Excel `'0'` に対し YAML `""`（下記 Sampling Comparison）。ユーザー判断で許容。その他のサンプルは一致 | | |
-| 変換後のYAMLファイルがコミットされている | OK | ユーザー許容後、YAML 3ファイルを無修正でコミット（task-3 YAML コミット） | | |
+| 変換対象の全てのExcelファイルに対応するYAMLファイルが生成されている | OK | 対象 Excel 1件（`SendProjectInsertMessageRequestTest.xlsx`、シート setUpDb / testNormalEnd / testAbnormalEnd）。`mvn -B com.nablarch.framework:nablarch-testing-converter:1.0.0-SNAPSHOT:convert` で「Converted 1 file(s).」BUILD SUCCESS。`SendProjectInsertMessageRequestTest/` 配下に `setUpDb.yaml`（0 byte。元シートが空）/ `testNormalEnd.yaml` / `testAbnormalEnd.yaml` を生成 | OK | 対象 Excel 1件（`.xls` 0件で併存なし）。3シートすべてに対応する YAML あり（setUpDb は空シートで 0 byte） |
+| サンプリング比較でExcelとYAMLの内容が一致している | OK（ユーザー許容） | `testAbnormalEnd` の `RESPONSE_HEADER_MESSAGES[case3]` / `[case4]` で再送要求フラグが Excel `'0'` に対し YAML `""`（下記 Sampling Comparison）。ユーザー判断で許容。その他のサンプルは一致 | OK | 全ブロックを機械比較（testNormalEnd 7ブロック・56セル、testAbnormalEnd 29ブロック・232セル）。不一致は許容済みの case3/case4 再送要求フラグ2セルのみ |
+| 変換後のYAMLファイルがコミットされている | OK | ユーザー許容後、YAML 3ファイルを無修正でコミット（task-3 YAML コミット） | OK | YAML 3ファイルは `2bbebb3` で追加。xlsx は git 管理下・作業ツリーとも残存 |
 
 ## Sampling Comparison（task-3 のみ）
 
@@ -42,8 +42,8 @@
 
 | Aspect | Verdict | Evidence / Improvement |
 |---|---|---|
-| Meaningful tests/verification | | |
-| Edge case coverage | | |
+| Meaningful tests/verification | OK | 自己チェック11サンプルに加え、全288セルを機械比較し「差異は case3/case4 のみ」の結論が全件で成立することを確認 |
+| Edge case coverage | OK | 空シート→0 byte、数値セル→`"1.0"`（Excel 読込時と等価）、空セル→`""`、`${systemTime}` 保持、`no:` キーは snakeyaml-engine（YAML 1.2）で文字列として読込。YAML 全メッセージに付く `file-type: "Fixed"` は Excel 読込時の `DataFile` 既定値と等価 |
 
 ## Expert Reviews (code changes only)
 
@@ -52,7 +52,7 @@ N/A — no code changes in this task.
 ## Overall Verdict
 
 - Self-check: OK（`RESPONSE_HEADER_MESSAGES[case3]/[case4]` 再送要求フラグ差異はユーザー判断で許容）
-- QA:
+- QA: OK
 - Language expert: N/A
 - Software-engineering expert: N/A
-- Ready for user review:
+- Ready for user review: Yes

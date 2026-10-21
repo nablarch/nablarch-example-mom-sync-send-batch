@@ -87,7 +87,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] 比較結果を `checks/task-3.md` に記録する
 - [x] 変換した YAML ファイルをコミットする（Excelは削除しない）
 - [x] self-check
-- [ ] QA expert review (Agent: general-purpose / Opus)
+- [x] QA expert review (Agent: general-purpose / Opus) — OK（全セル機械比較で既知差異以外なし）
 - [ ] user review（全task完了後にまとめて実施）
 **Completion criteria**:
 - 変換対象の全 Excel に対応する YAML が生成されている
@@ -124,7 +124,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1・#2 完了（全レビュー OK）、#3 実施中（差異はユーザー判断で許容、QA 待ち）
+- Status: #1〜#3 完了（全レビュー OK、#3 差異はユーザー許容）、#4 実施中
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
