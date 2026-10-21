@@ -115,16 +115,16 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] `mvn test` が BUILD SUCCESS になることを確認する（`clean generate-resources` → `test`、Tests run: 2, Failures: 0, Errors: 0）
 - [x] テストログで YamlTestDataParser が実際に使われていることを確認する（ログ: `.rn/ntf-yaml-support/logs/task-5-mvn-test.log`）
 - [x] self-check
-- [ ] QA expert review (Agent: general-purpose / Opus)
-- [ ] language expert review (Agent: general-purpose / Opus)
-- [ ] software-engineering expert review (Agent: general-purpose / Opus)
+- [x] QA expert review (Agent: general-purpose / Opus) — OK
+- [x] language expert review (Agent: general-purpose / Opus) — OK
+- [x] software-engineering expert review (Agent: general-purpose / Opus) — OK
 - [ ] user review（全task完了後にまとめて実施）
 **Completion criteria**:
 - `mvn test` が BUILD SUCCESS で終了する（全テストパス、Excel ファイルなし）
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1〜#4 完了（全レビュー OK、#3 差異はユーザー許容）、#5 実施中（レビュー待ち）
+- Status: #1〜#5 完了（全レビュー OK、#3 差異はユーザー許容）。まとめての user review 待ち。未 push
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
