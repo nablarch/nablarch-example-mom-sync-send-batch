@@ -64,9 +64,9 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - [x] `mvn dependency:resolve` / `mvn help:describe` で依存・プラグインの解決を確認する（いずれも rc=0、`convert` ゴール解決）
 - [x] 変更したファイルをコミットする
 - [x] self-check
-- [ ] QA expert review (Agent: general-purpose / Opus)
-- [ ] language expert review (Agent: general-purpose / Opus)
-- [ ] software-engineering expert review (Agent: general-purpose / Opus)
+- [x] QA expert review (Agent: general-purpose / Opus) — OK
+- [x] language expert review (Agent: general-purpose / Opus) — OK
+- [x] software-engineering expert review (Agent: general-purpose / Opus) — OK
 - [ ] user review（全task完了後にまとめて実施）
 **Completion criteria**:
 - `pom.xml` に `nablarch-testing-yaml:1.0.0-SNAPSHOT` が test スコープで追加されている
@@ -122,7 +122,7 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 - テストログで YamlTestDataParser が実際に使われていることが確認できる
 
 ## State
-- Status: #1 完了（Self-check/QA OK）、#2 実施中
+- Status: #1・#2 完了（全レビュー OK）、#3 実施中
 - Notes:
   - ベースライン前の先端 `12967ec`（過去の移行作業）は履歴に保持。
   - 未追跡ファイル `.rn/ntf-yaml-support/reports/logs/task-3-conversion.log`（過去作業の残置物）はコミット対象外として残置。
