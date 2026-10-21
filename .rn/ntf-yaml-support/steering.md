@@ -98,10 +98,10 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
 **Purpose**: 変換対象だった Excel を削除してコミットする。
 **Prerequisites**: #3
 **Steps**:
-- [ ] 変換対象となった Excel を削除する
-- [ ] 残存 Excel 0件を `checks/task-4.md` に記録する
-- [ ] 削除をコミットする
-- [ ] self-check
+- [x] 変換対象となった Excel を削除する（`SendProjectInsertMessageRequestTest.xlsx`）
+- [x] 残存 Excel 0件を `checks/task-4.md` に記録する
+- [x] 削除をコミットする
+- [x] self-check
 - [ ] QA expert review (Agent: general-purpose / Opus)
 - [ ] user review（全task完了後にまとめて実施）
 **Completion criteria**:
