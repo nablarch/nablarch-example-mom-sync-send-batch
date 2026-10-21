@@ -20,6 +20,8 @@ README（「実行手順」節）と `pom.xml` を確認した結果:
   LANG=ja_JP.UTF-8 mvn -B test
   ```
 - テストは組込み artemis-server で完結し、MOM 受信側 Example の起動は不要。
+- 実行環境: README 記載は Java 17 / Maven 3.9.9 以降。本作業は Apache Maven 3.9.16 / Maven 実行時の Java は Eclipse Temurin 17.0.20（`~/.mavenrc` で `JAVA_HOME` を temurin-17 に設定。`mvn -v` の `Java version` で確認）。シェルの `java` は mise 設定の OpenJDK 21.0.2 だが、ビルド・テスト・変換には使われない。
+- 補足: README は `.mvn/jvm.config` に言及しているが、`develop` には存在しない（上記環境では無しで成功）。
 
 ## Decisions
 - `YamlTestDataParser` は `src/test/resources/messaging-sync-send-boot.xml`（アクション起動 diConfig）に集約する。リクエスト単体テストは diConfig で `SystemRepository` を再初期化し、実行中に応答電文モックが `testDataParser` を参照するため。`unit-test.xml` は同ファイルを import しており、セットアップ/検証フェーズにも同じ定義が効く。本番用 `src/main/resources` には入れない。
