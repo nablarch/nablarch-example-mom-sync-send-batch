@@ -141,6 +141,13 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.nablarch.framework</groupId>
+      <artifactId>nablarch-testing-yaml</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -249,6 +256,18 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.nablarch.framework</groupId>
+        <artifactId>nablarch-testing-converter</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <configuration>
+          <from>xls</from>
+          <to>yaml</to>
+          <input>${project.basedir}/src/test/java</input>
+          <output>${project.basedir}/src/test/java</output>
+          <overwrite>true</overwrite>
+        </configuration>
       </plugin>
       <!-- レポーティング用のプラグインを追加 -->
       <plugin>
